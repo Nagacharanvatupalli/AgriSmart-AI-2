@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  --color-primary: #16a34a;
+  --color-primary-dark: #15803d;
+  --color-primary-light: #4ade80;
+}
+
+body {
+  @apply bg-[#f5f5f0] text-[#2c2c2c] font-sans;
+}
+
+.serif {
+  @apply font-serif;
+}
+
+.markdown-body h1 { @apply text-2xl font-bold mb-4; }
+.markdown-body h2 { @apply text-xl font-bold mb-3 mt-6; }
+.markdown-body h3 { @apply text-lg font-bold mb-2 mt-4; }
+.markdown-body p { @apply mb-4 leading-relaxed; }
+.markdown-body ul { @apply list-disc pl-6 mb-4; }
+.markdown-body li { @apply mb-1; }
+.markdown-body strong { @apply font-semibold; }
+
+/* Hero background used across Home and Auth pages */
+.hero-bg {
+  position: fixed;
+  inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920');
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px) saturate(0.95);
+  transform: scale(1.02);
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.56);
+  z-index: 1;
+}
+
+.auth-modal {
+  position: relative;
+  z-index: 10;
+}

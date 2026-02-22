@@ -1,0 +1,7 @@
+{
+  "name": "AgriSmart AI",
+  "description": "An AI-powered agricultural assistant for crop diagnosis, seasonal advice, and smart farming insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
