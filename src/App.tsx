@@ -4,15 +4,15 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Sprout, 
-  Camera, 
-  MessageSquare, 
-  CloudSun, 
-  TrendingUp, 
-  ChevronRight, 
-  Upload, 
-  Loader2, 
+import {
+  Sprout,
+  Camera,
+  MessageSquare,
+  CloudSun,
+  TrendingUp,
+  ChevronRight,
+  Upload,
+  Loader2,
   X,
   Leaf,
   Droplets,
@@ -52,8 +52,28 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [seasonalData, setSeasonalData] = useState<SeasonalData | null>(null);
   const [location, setLocation] = useState('Central Valley, CA');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Restore auth state from localStorage on every page load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedName = localStorage.getItem('userName');
+    if (token) {
+      setIsLoggedIn(true);
+      setUserName(storedName || '');
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userName');
+    setIsLoggedIn(false);
+    setUserName('');
+    setActiveTab('home');
+  };
 
   useEffect(() => {
     fetchSeasonalData();
@@ -83,7 +103,7 @@ export default function App() {
       setSelectedImage(base64);
       setIsAnalyzing(true);
       setActiveTab('diagnosis');
-      
+
       try {
         const result = await analyzeCropImage(base64.split(',')[1], file.type);
         setDiagnosisResult(result || "Could not analyze image.");
@@ -117,7 +137,13 @@ export default function App() {
   if (activeTab === 'home') {
     return (
       <div className="min-h-screen bg-white">
-        <Navbar onNavigate={(id) => setActiveTab(id as Tab)} currentView={activeTab} />
+        <Navbar
+          onNavigate={(id) => setActiveTab(id as Tab)}
+          currentView={activeTab}
+          isLoggedIn={isLoggedIn}
+          userName={userName}
+          onLogout={handleLogout}
+        />
         <Home onNavigate={(id) => setActiveTab(id as Tab)} />
       </div>
     );
@@ -126,7 +152,14 @@ export default function App() {
   if (activeTab === 'login' || activeTab === 'register') {
     return (
       <div className="min-h-screen">
-        <AuthPage onAuthSuccess={() => setActiveTab('dashboard')} onNavigate={(id) => setActiveTab(id as Tab)} />
+        <AuthPage
+          onAuthSuccess={(name?: string) => {
+            setIsLoggedIn(true);
+            setUserName(name || '');
+            setActiveTab('home');
+          }}
+          onNavigate={(id) => setActiveTab(id as Tab)}
+        />
       </div>
     );
   }
@@ -142,38 +175,38 @@ export default function App() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <NavItem 
-            icon={<CloudSun size={20} />} 
-            label="Dashboard" 
-            active={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')} 
+          <NavItem
+            icon={<CloudSun size={20} />}
+            label="Dashboard"
+            active={activeTab === 'dashboard'}
+            onClick={() => setActiveTab('dashboard')}
           />
-          <NavItem 
-            icon={<Camera size={20} />} 
-            label="Crop Diagnosis" 
-            active={activeTab === 'diagnosis'} 
-            onClick={() => setActiveTab('diagnosis')} 
+          <NavItem
+            icon={<Camera size={20} />}
+            label="Crop Diagnosis"
+            active={activeTab === 'diagnosis'}
+            onClick={() => setActiveTab('diagnosis')}
           />
-          <NavItem 
-            icon={<MessageSquare size={20} />} 
-            label="AI Assistant" 
-            active={activeTab === 'assistant'} 
-            onClick={() => setActiveTab('assistant')} 
+          <NavItem
+            icon={<MessageSquare size={20} />}
+            label="AI Assistant"
+            active={activeTab === 'assistant'}
+            onClick={() => setActiveTab('assistant')}
           />
-          <NavItem 
-            icon={<TrendingUp size={20} />} 
-            label="Market Insights" 
-            active={activeTab === 'market'} 
-            onClick={() => setActiveTab('market')} 
+          <NavItem
+            icon={<TrendingUp size={20} />}
+            label="Market Insights"
+            active={activeTab === 'market'}
+            onClick={() => setActiveTab('market')}
           />
         </div>
 
         <div className="mt-auto pt-8 border-t border-white/10">
           <div className="flex items-center gap-3 text-sm text-white/60">
             <MapPin size={16} />
-            <input 
-              type="text" 
-              value={location} 
+            <input
+              type="text"
+              value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="bg-transparent border-none focus:ring-0 text-white/80 w-full"
             />
@@ -184,7 +217,7 @@ export default function App() {
       <main className="flex-1 p-4 md:p-10 overflow-y-auto max-h-screen">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
-            <motion.div 
+            <motion.div
               key="dashboard"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -197,22 +230,22 @@ export default function App() {
               </header>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                  icon={<ThermometerSun className="text-orange-500" />} 
-                  label="Temperature" 
-                  value="24°C" 
+                <StatCard
+                  icon={<ThermometerSun className="text-orange-500" />}
+                  label="Temperature"
+                  value="24°C"
                   sub="Optimal for Corn"
                 />
-                <StatCard 
-                  icon={<Droplets className="text-blue-500" />} 
-                  label="Soil Moisture" 
-                  value="42%" 
+                <StatCard
+                  icon={<Droplets className="text-blue-500" />}
+                  label="Soil Moisture"
+                  value="42%"
                   sub="Irrigation needed in 2 days"
                 />
-                <StatCard 
-                  icon={<Leaf className="text-primary" />} 
-                  label="Crop Health" 
-                  value="Good" 
+                <StatCard
+                  icon={<Leaf className="text-primary" />}
+                  label="Crop Health"
+                  value="Good"
                   sub="92% overall vitality"
                 />
               </div>
@@ -259,18 +292,18 @@ export default function App() {
                   <div className="relative z-10">
                     <h3 className="serif text-3xl mb-4">Spot something unusual?</h3>
                     <p className="text-white/70 mb-8 max-w-xs">Upload a photo of your crop for an instant AI diagnosis of diseases or pests.</p>
-                    <button 
+                    <button
                       onClick={() => fileInputRef.current?.click()}
                       className="bg-white text-primary px-6 py-3 rounded-full font-medium flex items-center gap-2 hover:bg-white/90 transition-colors"
                     >
                       <Camera size={18} />
                       Start Diagnosis
                     </button>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleImageUpload} 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      className="hidden"
                       accept="image/*"
                     />
                   </div>
@@ -281,7 +314,7 @@ export default function App() {
           )}
 
           {activeTab === 'diagnosis' && (
-            <motion.div 
+            <motion.div
               key="diagnosis"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -294,7 +327,7 @@ export default function App() {
                   <p className="text-black/50 mt-2">AI-powered analysis of plant health.</p>
                 </div>
                 {selectedImage && (
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedImage(null);
                       setDiagnosisResult(null);
@@ -307,7 +340,7 @@ export default function App() {
               </header>
 
               {!selectedImage ? (
-                <div 
+                <div
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-black/10 rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-black/5 transition-all"
                 >
@@ -325,7 +358,7 @@ export default function App() {
                     <div className="aspect-square rounded-[32px] overflow-hidden border border-black/5 bg-black/5">
                       <img src={selectedImage} alt="Crop to analyze" className="w-full h-full object-cover" />
                     </div>
-                    <button 
+                    <button
                       onClick={() => fileInputRef.current?.click()}
                       className="w-full py-4 border border-black/10 rounded-2xl text-sm font-medium hover:bg-black/5 transition-colors"
                     >
@@ -356,7 +389,7 @@ export default function App() {
           )}
 
           {activeTab === 'assistant' && (
-            <motion.div 
+            <motion.div
               key="assistant"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -375,34 +408,34 @@ export default function App() {
                       <MessageSquare size={48} className="mb-4 opacity-20" />
                       <p className="max-w-xs">Start a conversation with your AI agricultural consultant.</p>
                       <div className="mt-8 grid grid-cols-1 gap-2 w-full max-w-sm">
-                        <QuickQuery 
-                          text="How to improve soil nitrogen naturally?" 
-                          onClick={() => setUserInput("How to improve soil nitrogen naturally?")} 
+                        <QuickQuery
+                          text="How to improve soil nitrogen naturally?"
+                          onClick={() => setUserInput("How to improve soil nitrogen naturally?")}
                         />
-                        <QuickQuery 
-                          text="Best irrigation schedule for tomatoes?" 
-                          onClick={() => setUserInput("Best irrigation schedule for tomatoes?")} 
+                        <QuickQuery
+                          text="Best irrigation schedule for tomatoes?"
+                          onClick={() => setUserInput("Best irrigation schedule for tomatoes?")}
                         />
-                        <QuickQuery 
-                          text="Organic ways to control aphids?" 
-                          onClick={() => setUserInput("Organic ways to control aphids?")} 
+                        <QuickQuery
+                          text="Organic ways to control aphids?"
+                          onClick={() => setUserInput("Organic ways to control aphids?")}
                         />
                       </div>
                     </div>
                   )}
                   {chatMessages.map((msg, i) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={cn(
                         "flex flex-col max-w-[85%]",
                         msg.role === 'user' ? "ml-auto items-end" : "items-start"
                       )}
                     >
-                      <div 
+                      <div
                         className={cn(
                           "p-4 rounded-2xl text-sm leading-relaxed",
-                          msg.role === 'user' 
-                            ? "bg-primary text-white rounded-tr-none" 
+                          msg.role === 'user'
+                            ? "bg-primary text-white rounded-tr-none"
                             : "bg-[#f5f5f0] text-black rounded-tl-none markdown-body"
                         )}
                       >
@@ -423,18 +456,18 @@ export default function App() {
                 </div>
 
                 <div className="p-4 bg-[#f5f5f0]/50 border-t border-black/5">
-                  <form 
+                  <form
                     onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                     className="flex gap-2"
                   >
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={userInput}
                       onChange={(e) => setUserInput(e.target.value)}
                       placeholder="Type your question here..."
                       className="flex-1 bg-white border border-black/10 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     />
-                    <button 
+                    <button
                       type="submit"
                       disabled={!userInput.trim() || isTyping}
                       className="bg-primary text-white p-4 rounded-2xl hover:bg-primary-dark disabled:opacity-50 transition-all"
@@ -448,7 +481,7 @@ export default function App() {
           )}
 
           {activeTab === 'market' && (
-            <motion.div 
+            <motion.div
               key="market"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -472,7 +505,7 @@ export default function App() {
                 <div className="h-64 flex items-end gap-2 px-4">
                   {[40, 55, 45, 60, 75, 65, 80, 70, 85, 95, 90, 100].map((h, i) => (
                     <div key={i} className="flex-1 bg-primary/10 rounded-t-lg relative group">
-                      <motion.div 
+                      <motion.div
                         initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         className="bg-primary rounded-t-lg w-full transition-all group-hover:bg-primary-dark"
@@ -493,7 +526,7 @@ export default function App() {
           )}
 
           {(activeTab === 'crops' || activeTab === 'weather') && (
-            <motion.div 
+            <motion.div
               key="placeholder"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -502,7 +535,7 @@ export default function App() {
               <div>
                 <h2 className="serif text-4xl mb-4">Coming Soon</h2>
                 <p className="text-black/50">The {activeTab} module is currently under development.</p>
-                <button 
+                <button
                   onClick={() => setActiveTab('dashboard')}
                   className="mt-8 text-primary font-bold flex items-center gap-2 mx-auto"
                 >
@@ -519,12 +552,12 @@ export default function App() {
 
 function NavItem({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
-        active 
-          ? "bg-white/10 text-white" 
+        active
+          ? "bg-white/10 text-white"
           : "text-white/50 hover:text-white hover:bg-white/5"
       )}
     >
@@ -556,9 +589,9 @@ function MarketCard({ name, price, change, trend }: { name: string, price: strin
         <h4 className="font-medium">{name}</h4>
         <span className={cn(
           "text-[10px] font-bold px-2 py-0.5 rounded-full",
-          trend === 'up' ? "bg-green-100 text-green-700" : 
-          trend === 'down' ? "bg-red-100 text-red-700" : 
-          "bg-gray-100 text-gray-700"
+          trend === 'up' ? "bg-green-100 text-green-700" :
+            trend === 'down' ? "bg-red-100 text-red-700" :
+              "bg-gray-100 text-gray-700"
         )}>
           {change}
         </span>
@@ -571,7 +604,7 @@ function MarketCard({ name, price, change, trend }: { name: string, price: strin
 
 function QuickQuery({ text, onClick }: { text: string, onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="text-left px-4 py-2 rounded-xl border border-black/5 text-xs hover:bg-black/5 transition-colors text-black/60"
     >

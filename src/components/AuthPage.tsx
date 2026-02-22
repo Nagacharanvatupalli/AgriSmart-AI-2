@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Phone, 
-  Lock, 
-  User, 
-  Calendar, 
-  MapPin, 
-  Sprout, 
-  Upload, 
-  ChevronRight, 
-  ChevronLeft, 
+import {
+  Phone,
+  Lock,
+  User,
+  Calendar,
+  MapPin,
+  Sprout,
+  Upload,
+  ChevronRight,
+  ChevronLeft,
   CheckCircle2,
   ArrowRight,
   X
@@ -28,7 +28,7 @@ const LOCATION_DATA = {
   }
 };
 
-export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess: () => void, onNavigate?: (tab: string) => void }) {
+export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess: (name?: string) => void, onNavigate?: (tab: string) => void }) {
   const [isLogin, setIsLogin] = useState(true);
   const [phase, setPhase] = useState(1);
   const [formData, setFormData] = useState({
@@ -60,7 +60,11 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        onAuthSuccess();
+        const firstName = data.user?.profile?.firstName || '';
+        const lastName = data.user?.profile?.lastName || '';
+        const fullName = [firstName, lastName].filter(Boolean).join(' ') || data.user?.mobile || '';
+        localStorage.setItem('userName', fullName);
+        onAuthSuccess(fullName);
       } else {
         alert('Login failed. Please check your credentials.');
       }
@@ -129,7 +133,7 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
           soilReportUrl: '',
         },
       };
-      
+
       console.log('Payload:', payload);
 
       const response = await fetch('/api/auth/register', {
@@ -177,10 +181,10 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
         Back to Home
       </button>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-      
+
       <AnimatePresence mode="wait">
         {isLogin ? (
-          <motion.div 
+          <motion.div
             key="login"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -200,8 +204,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Mobile Number</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     name="mobile"
                     required
                     value={formData.mobile}
@@ -216,8 +220,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     name="password"
                     required
                     value={formData.password}
@@ -236,7 +240,7 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                 <button type="button" className="text-primary font-bold hover:underline">Forgot Password?</button>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20"
               >
@@ -245,12 +249,12 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
             </form>
 
             <p className="text-center text-sm text-white/60 mt-10">
-              Don't have an account? 
+              Don't have an account?
               <button onClick={() => setIsLogin(false)} className="text-primary font-bold ml-2 hover:underline">Create Account</button>
             </p>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             key="register"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -293,8 +297,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Mobile Number</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="tel" 
+                      <input
+                        type="tel"
                         name="mobile"
                         value={formData.mobile}
                         onChange={handleInputChange}
@@ -307,8 +311,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Create Password</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
@@ -326,8 +330,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">First Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
@@ -340,8 +344,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Last Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
@@ -354,8 +358,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Age</label>
                     <div className="relative">
                       <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="age"
                         value={formData.age}
                         onChange={handleInputChange}
@@ -372,9 +376,9 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">State</label>
-                      <select 
-                        name="state" 
-                        value={formData.state} 
+                      <select
+                        name="state"
+                        value={formData.state}
                         onChange={handleInputChange}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
                       >
@@ -384,9 +388,9 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">District</label>
-                      <select 
-                        name="district" 
-                        value={formData.district} 
+                      <select
+                        name="district"
+                        value={formData.district}
                         onChange={handleInputChange}
                         disabled={!formData.state}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none disabled:opacity-50"
@@ -397,9 +401,9 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Mandal</label>
-                      <select 
-                        name="mandal" 
-                        value={formData.mandal} 
+                      <select
+                        name="mandal"
+                        value={formData.mandal}
                         onChange={handleInputChange}
                         disabled={!formData.district}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none disabled:opacity-50"
@@ -414,8 +418,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Crop Name</label>
                     <div className="relative">
                       <Sprout className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="cropName"
                         value={formData.cropName}
                         onChange={handleInputChange}
@@ -428,8 +432,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">Start Date</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         name="startDate"
                         value={formData.startDate}
                         onChange={handleInputChange}
@@ -438,8 +442,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-white/50 ml-1">End Date</label>
-                      <input 
-                        type="date" 
+                      <input
+                        type="date"
                         name="endDate"
                         value={formData.endDate}
                         onChange={handleInputChange}
@@ -460,8 +464,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
 
               <div className="flex gap-4 pt-6">
                 {phase > 1 && (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setPhase(phase - 1)}
                     className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                   >
@@ -469,8 +473,8 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
                     Back
                   </button>
                 )}
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => {
                     if (phase < 3) {
                       setPhase(phase + 1);

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Menu, X, User, LogOut, Pencil } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -10,12 +11,15 @@ function cn(...inputs: ClassValue[]) {
 interface NavbarProps {
   onNavigate: (view: string) => void;
   currentView: string;
+  isLoggedIn: boolean;
+  userName: string;
+  onLogout: () => void;
 }
 
-export default function Navbar({ onNavigate, currentView }: NavbarProps) {
+export default function Navbar({ onNavigate, currentView, isLoggedIn, userName, onLogout }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navLinks = [
     { name: 'Home', id: 'home' },
@@ -54,13 +58,13 @@ export default function Navbar({ onNavigate, currentView }: NavbarProps) {
             <div className="flex items-center gap-3 border-l border-white/20 pl-8">
               {!isLoggedIn ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => onNavigate('login')}
                     className="text-xs font-bold hover:text-primary transition-colors"
                   >
                     Login
                   </button>
-                  <button 
+                  <button
                     onClick={() => onNavigate('register')}
                     className="bg-primary text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-primary-dark transition-all"
                   >
@@ -68,24 +72,65 @@ export default function Navbar({ onNavigate, currentView }: NavbarProps) {
                   </button>
                 </>
               ) : (
-                <div className="relative">
-                  <button 
-                    onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white"
+                /* Entire profile area — open on click, close on mouse leave */
+                <div
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (closeTimer.current) clearTimeout(closeTimer.current);
+                  }}
+                  onMouseLeave={() => {
+                    closeTimer.current = setTimeout(() => setShowProfileMenu(false), 120);
+                  }}
+                >
+                  <button
+                    onClick={() => setShowProfileMenu((prev) => !prev)}
+                    className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm hover:opacity-90 transition-opacity"
+                    title={userName || 'Profile'}
                   >
-                    <User size={16} />
+                    {userName ? userName.charAt(0).toUpperCase() : <User size={16} />}
                   </button>
-                  {showProfileMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 text-black">
-                      <button 
-                        onClick={() => { setIsLoggedIn(false); setShowProfileMenu(false); onNavigate('home'); }}
-                        className="flex items-center w-full px-4 py-2 text-sm hover:bg-gray-100 gap-2"
+
+                  <AnimatePresence>
+                    {showProfileMenu && (
+                      <motion.div
+                        key="profile-menu"
+                        initial={{ opacity: 0, scale: 0.92, y: -6 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute right-0 top-full w-44 origin-top-right"
+                        style={{ paddingTop: '6px' }}
                       >
-                        <LogOut size={16} />
-                        Logout
-                      </button>
-                    </div>
-                  )}
+                        <div className="bg-white rounded-xl shadow-xl py-1.5 text-black">
+                          {/* User name header */}
+                          {userName && (
+                            <div className="px-3 py-2 border-b border-gray-100">
+                              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Signed in as</p>
+                              <p className="text-xs font-semibold truncate mt-0.5">{userName}</p>
+                            </div>
+                          )}
+
+                          {/* Edit Profile */}
+                          <button
+                            onClick={() => { onNavigate('profile'); setShowProfileMenu(false); }}
+                            className="flex items-center w-full px-3 py-2 text-xs font-medium hover:bg-gray-50 gap-2 text-gray-700 transition-colors"
+                          >
+                            <Pencil size={13} />
+                            Edit Profile
+                          </button>
+
+                          {/* Logout */}
+                          <button
+                            onClick={() => { onLogout(); setShowProfileMenu(false); }}
+                            className="flex items-center w-full px-3 py-2 text-xs font-medium hover:bg-red-50 gap-2 text-red-500 transition-colors"
+                          >
+                            <LogOut size={13} />
+                            Logout
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
             </div>
@@ -99,46 +144,69 @@ export default function Navbar({ onNavigate, currentView }: NavbarProps) {
         </div>
       </div>
 
-      {isOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/10">
-          <div className="px-4 pt-4 pb-6 space-y-2">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => { onNavigate(link.id); setIsOpen(false); }}
-                className="block w-full text-left px-3 py-2 text-sm font-medium text-white/70 hover:text-primary"
-              >
-                {link.name}
-              </button>
-            ))}
-            <div className="pt-4 flex flex-col gap-2">
-              {!isLoggedIn ? (
-                <>
-                  <button 
-                    onClick={() => { onNavigate('login'); setIsOpen(false); }}
-                    className="w-full text-center py-2 text-sm font-bold text-white border border-white/20 rounded-lg"
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => { onNavigate('register'); setIsOpen(false); }}
-                    className="w-full text-center bg-primary text-white py-2 rounded-lg text-sm font-bold"
-                  >
-                    Register
-                  </button>
-                </>
-              ) : (
-                <button 
-                  onClick={() => { setIsLoggedIn(false); setIsOpen(false); onNavigate('home'); }}
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/10 overflow-hidden"
+          >
+            <div className="px-4 pt-4 pb-6 space-y-2">
+              {navLinks.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => { onNavigate(link.id); setIsOpen(false); }}
                   className="block w-full text-left px-3 py-2 text-sm font-medium text-white/70 hover:text-primary"
                 >
-                  Logout
+                  {link.name}
                 </button>
-              )}
+              ))}
+              <div className="pt-4 flex flex-col gap-1 border-t border-white/10">
+                {!isLoggedIn ? (
+                  <>
+                    <button
+                      onClick={() => { onNavigate('login'); setIsOpen(false); }}
+                      className="w-full text-center py-2 text-sm font-bold text-white border border-white/20 rounded-lg"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => { onNavigate('register'); setIsOpen(false); }}
+                      className="w-full text-center bg-primary text-white py-2 rounded-lg text-sm font-bold"
+                    >
+                      Register
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {userName && (
+                      <p className="px-3 py-1 text-xs font-semibold text-white/60 uppercase tracking-wider truncate">{userName}</p>
+                    )}
+                    <button
+                      onClick={() => { onNavigate('profile'); setIsOpen(false); }}
+                      className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm font-medium text-white/70 hover:text-primary"
+                    >
+                      <Pencil size={14} />
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => { onLogout(); setIsOpen(false); }}
+                      className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm font-medium text-red-400 hover:text-red-300"
+                    >
+                      <LogOut size={14} />
+                      Logout
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
