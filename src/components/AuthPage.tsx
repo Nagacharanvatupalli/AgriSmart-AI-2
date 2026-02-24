@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Phone,
@@ -28,7 +29,9 @@ const LOCATION_DATA = {
   }
 };
 
-export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess: (name?: string) => void, onNavigate?: (tab: string) => void }) {
+export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: string) => void }) {
+  const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
   const [phase, setPhase] = useState(1);
   const [formData, setFormData] = useState({
@@ -175,7 +178,7 @@ export default function AuthPage({ onAuthSuccess, onNavigate }: { onAuthSuccess:
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative px-4 py-10" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920")' }}>
       <button
-        onClick={() => onNavigate?.('home')}
+        onClick={() => navigate('/')}
         className="absolute left-6 top-6 z-20 text-sm text-white/80 bg-black/20 px-3 py-2 rounded-lg hover:bg-black/30 transition-colors"
       >
         Back to Home

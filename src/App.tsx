@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import {
   Sprout,
   Camera,
@@ -17,7 +18,13 @@ import {
   Leaf,
   Droplets,
   ThermometerSun,
-  MapPin
+  MapPin,
+  Calendar,
+  CheckCircle2,
+  Plus,
+  ArrowUpRight,
+  Pencil,
+  User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
@@ -33,8 +40,6 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-type Tab = 'home' | 'dashboard' | 'diagnosis' | 'assistant' | 'market' | 'crops' | 'weather' | 'login' | 'register';
-
 interface SeasonalData {
   recommendedCrops: string[];
   risks: string[];
@@ -42,8 +47,275 @@ interface SeasonalData {
   summary: string;
 }
 
+// ── Dashboard Page Component ──────────────────────────────────────────────────
+interface DashboardPageProps {
+  userName: string;
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+}
+
+function DashboardPage({ userName, onImageUpload, fileInputRef }: DashboardPageProps) {
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-gray-50/50">
+      <div className="max-w-[1600px] mx-auto">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Farm Management</h1>
+            <p className="text-gray-400 mt-1 font-medium italic">Real-time overview of your agricultural assets.</p>
+          </div>
+          <div className="flex gap-4">
+            <button className="bg-primary text-white font-bold text-xs uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+              <Plus size={16} /> ADD NEW CROP
+            </button>
+            <button className="bg-white text-primary border-2 border-primary/20 font-bold text-xs uppercase tracking-widest px-8 py-3 rounded-xl hover:bg-primary/5 transition-all">
+              MY CROPS
+            </button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Profile Card */}
+          <div className="lg:col-span-4 rounded-[40px] bg-white p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col items-center">
+            <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mb-8">
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center">
+                <User size={32} className="text-white" />
+              </div>
+            </div>
+
+            <h2 className="text-3xl font-bold text-gray-900 text-center uppercase tracking-tight leading-tight max-w-[200px]">
+              {userName || 'NAGA CHARAN VATUPALLI'}
+            </h2>
+
+            <div className="mt-4 flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest">
+              <CheckCircle2 size={12} /> VERIFIED FARMER
+            </div>
+
+            <div className="w-full mt-10 space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-2">LOCATION DETAILS</h3>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                  <MapPin size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-300 uppercase">Andhra Pradesh</p>
+                  <p className="text-sm font-bold text-gray-700">Bapatla, Chinaganjam</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                  <Leaf size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-300 uppercase">Primary Crop</p>
+                  <p className="text-sm font-bold text-gray-700">Paddy</p>
+                </div>
+              </div>
+            </div>
+
+            <button className="w-full mt-10 bg-[#161b22] text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3">
+              <Pencil size={16} /> EDIT PROFILE
+            </button>
+          </div>
+
+          {/* Right Column: Stats and Info */}
+          <div className="lg:col-span-8 flex flex-col gap-8">
+            {/* Top Stats Strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <DashboardStat
+                label="ACTIVE CROP"
+                value="Paddy"
+                icon={<Leaf className="text-green-500" size={24} />}
+              />
+              <DashboardStat
+                label="CYCLE PROGRESS"
+                value="7%"
+                icon={<Calendar className="text-blue-500" size={24} />}
+              />
+              <DashboardStat
+                label="MARKET PRICE"
+                value="↑ 12%"
+                icon={<TrendingUp className="text-orange-500" size={24} />}
+              />
+              <DashboardStat
+                label="IRRIGATION"
+                value="Normal"
+                icon={<Droplets className="text-blue-400" size={24} />}
+              />
+            </div>
+
+            {/* Middle Row: Weather Feed and Recommendation */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-[40px] p-8 shadow-lg shadow-gray-200/50 border border-gray-100">
+                <header className="flex items-center gap-2 mb-8">
+                  <CloudSun className="text-primary" size={20} />
+                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">Daily Weather Feed</h3>
+                </header>
+
+                <div className="space-y-6">
+                  <WeatherRow label="Morning Temp" value="24°C" />
+                  <WeatherRow label="Humidity Levels" value="58%" />
+                  <WeatherRow label="Rain Prediction" value="Low (5%)" highlighted />
+                </div>
+              </div>
+
+              <div className="bg-[#1e5128] rounded-[40px] p-8 shadow-xl shadow-green-900/10 text-white flex flex-col justify-between relative overflow-hidden">
+                <div>
+                  <h3 className="text-xl font-bold tracking-tight mb-4">AI Recommendation</h3>
+                  <p className="text-white/70 text-sm leading-relaxed max-w-[280px]">
+                    Localized analysis for Chinaganjam shows Increasing soil alkalinity.
+                    Consider adjusting phosphate application for your next Paddy cycle.
+                  </p>
+                </div>
+
+                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#d1e2c4] hover:text-white transition-colors mt-8">
+                  ACCESS FULL AI LAB <ArrowUpRight size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <input type="file" ref={fileInputRef} onChange={onImageUpload} className="hidden" accept="image/*" />
+    </div>
+  );
+}
+
+// ── Diagnosis Page Component ─────────────────────────────────────────────────
+interface DiagnosisPageProps {
+  selectedImage: string | null;
+  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  isAnalyzing: boolean;
+  diagnosisResult: string | null;
+  onReset: () => void;
+}
+
+function DiagnosisPage({ selectedImage, onImageUpload, fileInputRef, isAnalyzing, diagnosisResult, onReset }: DiagnosisPageProps) {
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-white">
+      <div className="max-w-[1200px] mx-auto space-y-8">
+        <header className="flex items-center justify-between">
+          <div>
+            <h2 className="text-4xl font-bold text-gray-900">Crop Doctor</h2>
+            <p className="text-gray-400 mt-2 font-medium italic">Instant identification of crop diseases and pests.</p>
+          </div>
+          {selectedImage && (
+            <button onClick={onReset} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X size={24} />
+            </button>
+          )}
+        </header>
+        {!selectedImage ? (
+          <div onClick={() => fileInputRef.current?.click()} className="border-4 border-dashed border-gray-100 rounded-[40px] p-24 flex flex-col items-center justify-center gap-6 cursor-pointer hover:bg-gray-50 transition-all border-spacing-4">
+            <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center"><Upload className="text-primary" size={32} /></div>
+            <div className="text-center">
+              <p className="text-xl font-bold text-gray-900">Drop your crop image here</p>
+              <p className="text-gray-400 text-sm mt-1">Supports JPG, PNG, WEBP (Max 10MB)</p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <div className="aspect-square rounded-[40px] overflow-hidden border border-gray-100 bg-gray-50 shadow-inner">
+                <img src={selectedImage} alt="Crop to analyze" className="w-full h-full object-cover" />
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors">SCAN NEW IMAGE</button>
+            </div>
+            <div className="bg-white rounded-[40px] p-10 shadow-xl border border-gray-100 min-h-[400px]">
+              {isAnalyzing ? (
+                <div className="h-full flex flex-col items-center justify-center gap-4">
+                  <div className="relative">
+                    <Loader2 className="animate-spin text-primary" size={64} />
+                    <Leaf className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary/40" size={24} />
+                  </div>
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-4 animate-pulse">Running AI Diagnostics...</p>
+                </div>
+              ) : diagnosisResult ? (
+                <div className="markdown-body prose prose-slate max-w-none"><Markdown>{diagnosisResult}</Markdown></div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center text-gray-300">
+                  <Camera size={48} className="mb-4 opacity-10" /><p className="font-medium italic">Ready to assist your plants.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        <input type="file" ref={fileInputRef} onChange={onImageUpload} className="hidden" accept="image/*" />
+      </div>
+    </div>
+  );
+}
+
+// ── Assistant Page Component ──────────────────────────────────────────────────
+interface AssistantPageProps {
+  chatMessages: { role: 'user' | 'ai'; content: string }[];
+  userInput: string;
+  onUserInputChange: (val: string) => void;
+  onSendMessage: () => void;
+  isTyping: boolean;
+  chatEndRef: React.RefObject<HTMLDivElement>;
+}
+
+function AssistantPage({ chatMessages, userInput, onUserInputChange, onSendMessage, isTyping, chatEndRef }: AssistantPageProps) {
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-gray-50/50 flex flex-col">
+      <div className="max-w-[1000px] mx-auto w-full flex-1 flex flex-col">
+        <header className="mb-8">
+          <h2 className="text-4xl font-bold text-gray-900">AI Advice</h2>
+          <p className="text-gray-400 mt-2 font-medium italic">Your personalized agricultural consultant.</p>
+        </header>
+        <div className="flex-1 bg-white rounded-[40px] shadow-xl border border-gray-100 flex flex-col overflow-hidden mb-6">
+          <div className="flex-1 overflow-y-auto p-8 space-y-8">
+            {chatMessages.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center p-10">
+                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-6">
+                  <MessageSquare className="text-primary" size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">How can I help you today?</h3>
+                <p className="text-gray-400 max-w-sm font-medium italic mb-10">Ask me anything about soil health, pest control, or irrigation.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
+                  <QuickQuery text="Best time to plant Paddy?" onClick={() => onUserInputChange("Best time to plant Paddy in Andhra Pradesh?")} />
+                  <QuickQuery text="Organic nitrogen sources?" onClick={() => onUserInputChange("How to improve soil nitrogen naturally?")} />
+                  <QuickQuery text="Tomato blight management?" onClick={() => onUserInputChange("Early signs of tomato blight and organic control?")} />
+                  <QuickQuery text="Weather impact on harvest?" onClick={() => onUserInputChange("How does high humidity affect harvest quality?")} />
+                </div>
+              </div>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={cn("flex flex-col gap-2", msg.role === 'user' ? "items-end" : "items-start")}>
+                <div className={cn("p-6 rounded-[28px] text-sm leading-relaxed max-w-[85%]", msg.role === 'user' ? "bg-primary text-white rounded-tr-none shadow-lg shadow-primary/20" : "bg-gray-50 text-gray-700 border border-gray-100 rounded-tl-none")}>
+                  {msg.role === 'ai' ? <Markdown>{msg.content}</Markdown> : msg.content}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{msg.role === 'user' ? 'Farmer' : 'Kisan AI'}</span>
+              </div>
+            ))}
+            {isTyping && (
+              <div className="flex items-center gap-3 text-primary/60">
+                <Loader2 size={20} className="animate-spin" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Assistant is thinking...</span>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+          <div className="p-6 bg-gray-50 border-t border-gray-100">
+            <form onSubmit={(e) => { e.preventDefault(); onSendMessage(); }} className="flex gap-3">
+              <input type="text" value={userInput} onChange={(e) => onUserInputChange(e.target.value)} placeholder="Type your query here..." className="flex-1 bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium text-sm" />
+              <button type="submit" disabled={!userInput.trim() || isTyping} className="bg-primary text-white p-4 rounded-2xl hover:bg-primary-dark disabled:opacity-50 transition-all shadow-xl shadow-primary/20">
+                <ChevronRight size={24} />
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main App Component ────────────────────────────────────────────────────────
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const navigate = useNavigate();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -51,7 +323,7 @@ export default function App() {
   const [userInput, setUserInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [seasonalData, setSeasonalData] = useState<SeasonalData | null>(null);
-  const [location, setLocation] = useState('Central Valley, CA');
+  const [location, setLocation] = useState('Bapatla, Chinaganjam');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,12 +339,15 @@ export default function App() {
     }
   }, []);
 
+  const { pathname } = useLocation();
+  const isAuthPage = ['/login', '/register'].includes(pathname);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userName');
     setIsLoggedIn(false);
     setUserName('');
-    setActiveTab('home');
+    navigate('/');
   };
 
   useEffect(() => {
@@ -102,7 +377,7 @@ export default function App() {
       const base64 = reader.result as string;
       setSelectedImage(base64);
       setIsAnalyzing(true);
-      setActiveTab('diagnosis');
+      navigate('/diagnosis');
 
       try {
         const result = await analyzeCropImage(base64.split(',')[1], file.type);
@@ -134,481 +409,96 @@ export default function App() {
     }
   };
 
-  if (activeTab === 'home') {
-    return (
-      <div className="min-h-screen bg-white">
-        <Navbar
-          onNavigate={(id) => setActiveTab(id as Tab)}
-          currentView={activeTab}
-          isLoggedIn={isLoggedIn}
-          userName={userName}
-          onLogout={handleLogout}
-        />
-        <Home onNavigate={(id) => setActiveTab(id as Tab)} />
-      </div>
-    );
-  }
-
-  if (activeTab === 'login' || activeTab === 'register') {
-    return (
-      <div className="min-h-screen">
-        <AuthPage
-          onAuthSuccess={(name?: string) => {
-            setIsLoggedIn(true);
-            setUserName(name || '');
-            setActiveTab('home');
-          }}
-          onNavigate={(id) => setActiveTab(id as Tab)}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      <nav className="w-full md:w-64 bg-[#1a1a1a] text-white p-6 flex flex-col gap-8">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-            <Sprout className="text-white" size={24} />
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight">AgriSmart AI</h1>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <NavItem
-            icon={<CloudSun size={20} />}
-            label="Dashboard"
-            active={activeTab === 'dashboard'}
-            onClick={() => setActiveTab('dashboard')}
+    <div className="bg-white min-h-screen">
+      {!isAuthPage && <Navbar isLoggedIn={isLoggedIn} userName={userName} onLogout={handleLogout} />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
+        <Route path="/register" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
+        <Route path="/dashboard" element={
+          <DashboardPage
+            userName={userName}
+            onImageUpload={handleImageUpload}
+            fileInputRef={fileInputRef}
           />
-          <NavItem
-            icon={<Camera size={20} />}
-            label="Crop Diagnosis"
-            active={activeTab === 'diagnosis'}
-            onClick={() => setActiveTab('diagnosis')}
+        } />
+        <Route path="/diagnosis" element={
+          <DiagnosisPage
+            selectedImage={selectedImage}
+            onImageUpload={handleImageUpload}
+            fileInputRef={fileInputRef}
+            isAnalyzing={isAnalyzing}
+            diagnosisResult={diagnosisResult}
+            onReset={() => { setSelectedImage(null); setDiagnosisResult(null); }}
           />
-          <NavItem
-            icon={<MessageSquare size={20} />}
-            label="AI Assistant"
-            active={activeTab === 'assistant'}
-            onClick={() => setActiveTab('assistant')}
+        } />
+        <Route path="/assistant" element={
+          <AssistantPage
+            chatMessages={chatMessages}
+            userInput={userInput}
+            onUserInputChange={setUserInput}
+            onSendMessage={handleSendMessage}
+            isTyping={isTyping}
+            chatEndRef={chatEndRef}
           />
-          <NavItem
-            icon={<TrendingUp size={20} />}
-            label="Market Insights"
-            active={activeTab === 'market'}
-            onClick={() => setActiveTab('market')}
-          />
-        </div>
-
-        <div className="mt-auto pt-8 border-t border-white/10">
-          <div className="flex items-center gap-3 text-sm text-white/60">
-            <MapPin size={16} />
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-white/80 w-full"
-            />
-          </div>
-        </div>
-      </nav>
-
-      <main className="flex-1 p-4 md:p-10 overflow-y-auto max-h-screen">
-        <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-8"
-            >
-              <header>
-                <h2 className="serif text-4xl font-medium text-[#1a1a1a]">Good Morning, Farmer</h2>
-                <p className="text-black/50 mt-2">Here's what's happening on your farm today.</p>
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard
-                  icon={<ThermometerSun className="text-orange-500" />}
-                  label="Temperature"
-                  value="24°C"
-                  sub="Optimal for Corn"
-                />
-                <StatCard
-                  icon={<Droplets className="text-blue-500" />}
-                  label="Soil Moisture"
-                  value="42%"
-                  sub="Irrigation needed in 2 days"
-                />
-                <StatCard
-                  icon={<Leaf className="text-primary" />}
-                  label="Crop Health"
-                  value="Good"
-                  sub="92% overall vitality"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-black/5">
-                  <h3 className="serif text-2xl mb-6">Seasonal Insights: {format(new Date(), 'MMMM')}</h3>
-                  {seasonalData ? (
-                    <div className="space-y-6">
-                      <p className="text-black/70 leading-relaxed">{seasonalData.summary}</p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-black/40">Recommended Crops</h4>
-                          <ul className="space-y-2">
-                            {seasonalData.recommendedCrops.map(crop => (
-                              <li key={crop} className="flex items-center gap-2 text-sm">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                                {crop}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-wider text-black/40">Key Tasks</h4>
-                          <ul className="space-y-2">
-                            {seasonalData.tasks.map(task => (
-                              <li key={task} className="flex items-center gap-2 text-sm">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                                {task}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center py-20">
-                      <Loader2 className="animate-spin text-black/20" size={32} />
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-primary text-white rounded-[32px] p-8 flex flex-col justify-between relative overflow-hidden">
-                  <div className="relative z-10">
-                    <h3 className="serif text-3xl mb-4">Spot something unusual?</h3>
-                    <p className="text-white/70 mb-8 max-w-xs">Upload a photo of your crop for an instant AI diagnosis of diseases or pests.</p>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-white text-primary px-6 py-3 rounded-full font-medium flex items-center gap-2 hover:bg-white/90 transition-colors"
-                    >
-                      <Camera size={18} />
-                      Start Diagnosis
-                    </button>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      accept="image/*"
-                    />
-                  </div>
-                  <Sprout className="absolute -bottom-10 -right-10 text-white/10 w-64 h-64" />
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'diagnosis' && (
-            <motion.div
-              key="diagnosis"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="max-w-4xl mx-auto space-y-8"
-            >
-              <header className="flex items-center justify-between">
-                <div>
-                  <h2 className="serif text-4xl font-medium">Crop Diagnosis</h2>
-                  <p className="text-black/50 mt-2">AI-powered analysis of plant health.</p>
-                </div>
-                {selectedImage && (
-                  <button
-                    onClick={() => {
-                      setSelectedImage(null);
-                      setDiagnosisResult(null);
-                    }}
-                    className="p-2 hover:bg-black/5 rounded-full transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
-                )}
-              </header>
-
-              {!selectedImage ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-black/10 rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-black/5 transition-all"
-                >
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                    <Upload className="text-primary" size={32} />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-medium">Click to upload or drag and drop</p>
-                    <p className="text-black/40 text-sm">PNG, JPG or WEBP (max. 10MB)</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="aspect-square rounded-[32px] overflow-hidden border border-black/5 bg-black/5">
-                      <img src={selectedImage} alt="Crop to analyze" className="w-full h-full object-cover" />
-                    </div>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full py-4 border border-black/10 rounded-2xl text-sm font-medium hover:bg-black/5 transition-colors"
-                    >
-                      Upload Different Image
-                    </button>
-                  </div>
-
-                  <div className="bg-white rounded-[32px] p-8 shadow-sm border border-black/5 min-h-[400px]">
-                    {isAnalyzing ? (
-                      <div className="h-full flex flex-col items-center justify-center gap-4">
-                        <Loader2 className="animate-spin text-primary" size={48} />
-                        <p className="text-black/40 animate-pulse">Analyzing crop health...</p>
-                      </div>
-                    ) : diagnosisResult ? (
-                      <div className="markdown-body">
-                        <Markdown>{diagnosisResult}</Markdown>
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center text-black/30">
-                        <Leaf size={48} className="mb-4 opacity-20" />
-                        <p>Analysis will appear here.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'assistant' && (
-            <motion.div
-              key="assistant"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="h-[calc(100vh-80px)] flex flex-col max-w-4xl mx-auto"
-            >
-              <header className="mb-8">
-                <h2 className="serif text-4xl font-medium">AgriSmart Assistant</h2>
-                <p className="text-black/50 mt-2">Ask anything about farming, soil, or pest control.</p>
-              </header>
-
-              <div className="flex-1 bg-white rounded-[32px] shadow-sm border border-black/5 flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {chatMessages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-center text-black/30 p-10">
-                      <MessageSquare size={48} className="mb-4 opacity-20" />
-                      <p className="max-w-xs">Start a conversation with your AI agricultural consultant.</p>
-                      <div className="mt-8 grid grid-cols-1 gap-2 w-full max-w-sm">
-                        <QuickQuery
-                          text="How to improve soil nitrogen naturally?"
-                          onClick={() => setUserInput("How to improve soil nitrogen naturally?")}
-                        />
-                        <QuickQuery
-                          text="Best irrigation schedule for tomatoes?"
-                          onClick={() => setUserInput("Best irrigation schedule for tomatoes?")}
-                        />
-                        <QuickQuery
-                          text="Organic ways to control aphids?"
-                          onClick={() => setUserInput("Organic ways to control aphids?")}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {chatMessages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "flex flex-col max-w-[85%]",
-                        msg.role === 'user' ? "ml-auto items-end" : "items-start"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "p-4 rounded-2xl text-sm leading-relaxed",
-                          msg.role === 'user'
-                            ? "bg-primary text-white rounded-tr-none"
-                            : "bg-[#f5f5f0] text-black rounded-tl-none markdown-body"
-                        )}
-                      >
-                        {msg.role === 'ai' ? <Markdown>{msg.content}</Markdown> : msg.content}
-                      </div>
-                      <span className="text-[10px] uppercase tracking-widest text-black/30 mt-1 font-bold">
-                        {msg.role === 'user' ? 'You' : 'AgriSmart AI'}
-                      </span>
-                    </div>
-                  ))}
-                  {isTyping && (
-                    <div className="flex items-center gap-2 text-black/30">
-                      <Loader2 size={16} className="animate-spin" />
-                      <span className="text-xs font-medium italic">Thinking...</span>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-
-                <div className="p-4 bg-[#f5f5f0]/50 border-t border-black/5">
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-                    className="flex gap-2"
-                  >
-                    <input
-                      type="text"
-                      value={userInput}
-                      onChange={(e) => setUserInput(e.target.value)}
-                      placeholder="Type your question here..."
-                      className="flex-1 bg-white border border-black/10 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!userInput.trim() || isTyping}
-                      className="bg-primary text-white p-4 rounded-2xl hover:bg-primary-dark disabled:opacity-50 transition-all"
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'market' && (
-            <motion.div
-              key="market"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-8"
-            >
-              <header>
-                <h2 className="serif text-4xl font-medium">Market Insights</h2>
-                <p className="text-black/50 mt-2">Real-time commodity prices and trends.</p>
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <MarketCard name="Wheat" price="$215.40" change="+1.2%" trend="up" />
-                <MarketCard name="Corn" price="$168.20" change="-0.5%" trend="down" />
-                <MarketCard name="Soybeans" price="$432.10" change="+2.4%" trend="up" />
-                <MarketCard name="Rice" price="$385.00" change="0.0%" trend="neutral" />
-              </div>
-
-              <div className="bg-white rounded-[32px] p-8 shadow-sm border border-black/5">
-                <h3 className="serif text-2xl mb-6">Price Trends (Last 30 Days)</h3>
-                <div className="h-64 flex items-end gap-2 px-4">
-                  {[40, 55, 45, 60, 75, 65, 80, 70, 85, 95, 90, 100].map((h, i) => (
-                    <div key={i} className="flex-1 bg-primary/10 rounded-t-lg relative group">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}%` }}
-                        className="bg-primary rounded-t-lg w-full transition-all group-hover:bg-primary-dark"
-                      />
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        Day {i + 1}: ${200 + h}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between mt-4 text-[10px] uppercase tracking-widest font-bold text-black/30">
-                  <span>Feb 1</span>
-                  <span>Feb 15</span>
-                  <span>Feb 28</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {(activeTab === 'crops' || activeTab === 'weather') && (
-            <motion.div
-              key="placeholder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="h-full flex items-center justify-center text-center p-10"
-            >
-              <div>
-                <h2 className="serif text-4xl mb-4">Coming Soon</h2>
-                <p className="text-black/50">The {activeTab} module is currently under development.</p>
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className="mt-8 text-primary font-bold flex items-center gap-2 mx-auto"
-                >
-                  Back to Dashboard <ChevronRight size={16} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+        } />
+        <Route path="/market" element={<ComingSoonPage name="Market" />} />
+        <Route path="/crops" element={<ComingSoonPage name="Crops" />} />
+        <Route path="/weather" element={<ComingSoonPage name="Weather" />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
 
-function NavItem({ icon, label, active, onClick }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium",
-        active
-          ? "bg-white/10 text-white"
-          : "text-white/50 hover:text-white hover:bg-white/5"
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
+// ── Shared mini-components ────────────────────────────────────────────────────
 
-function StatCard({ icon, label, value, sub }: { icon: React.ReactNode, label: string, value: string, sub: string }) {
+function DashboardStat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-[32px] p-6 shadow-sm border border-black/5 flex items-center gap-6">
-      <div className="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center">
+    <div className="bg-white rounded-3xl p-6 shadow-md shadow-gray-200/50 border border-gray-100 flex flex-col items-center justify-between min-h-[160px] hover:scale-[1.02] transition-transform cursor-pointer group">
+      <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
         {icon}
       </div>
-      <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-black/30">{label}</p>
-        <p className="text-2xl font-semibold text-[#1a1a1a]">{value}</p>
-        <p className="text-xs text-black/40 mt-1">{sub}</p>
+      <div className="text-center mt-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">{label}</p>
+        <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
       </div>
     </div>
   );
 }
 
-function MarketCard({ name, price, change, trend }: { name: string, price: string, change: string, trend: 'up' | 'down' | 'neutral' }) {
+function WeatherRow({ label, value, highlighted }: { label: string; value: string; highlighted?: boolean }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-black/5">
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-medium">{name}</h4>
-        <span className={cn(
-          "text-[10px] font-bold px-2 py-0.5 rounded-full",
-          trend === 'up' ? "bg-green-100 text-green-700" :
-            trend === 'down' ? "bg-red-100 text-red-700" :
-              "bg-gray-100 text-gray-700"
-        )}>
-          {change}
-        </span>
-      </div>
-      <p className="text-xl font-semibold">{price}</p>
-      <p className="text-[10px] text-black/30 uppercase tracking-wider mt-1">Per Metric Ton</p>
+    <div className={cn(
+      "flex justify-between items-center px-6 py-4 rounded-2xl",
+      highlighted ? "bg-blue-50/50 border border-blue-100 text-blue-600" : "bg-gray-50/50 text-gray-600"
+    )}>
+      <span className="text-xs font-bold uppercase tracking-widest opacity-60">{label}</span>
+      <span className="text-sm font-black">{value}</span>
     </div>
   );
 }
 
-function QuickQuery({ text, onClick }: { text: string, onClick: () => void }) {
+function QuickQuery({ text, onClick }: { text: string; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="text-left px-4 py-2 rounded-xl border border-black/5 text-xs hover:bg-black/5 transition-colors text-black/60"
-    >
+    <button onClick={onClick} className="text-left px-5 py-3 rounded-2xl border border-gray-100 bg-white shadow-sm text-xs font-bold text-gray-500 hover:border-primary/30 hover:text-primary transition-all">
       {text}
     </button>
+  );
+}
+
+function ComingSoonPage({ name }: { name: string }) {
+  const navigate = useNavigate();
+  return (
+    <div className="h-screen flex items-center justify-center text-center p-10 bg-white">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h2 className="text-6xl font-black text-gray-100 uppercase tracking-tighter mb-4">{name}</h2>
+        <p className="text-gray-400 font-medium italic">This module is getting ready for harvest.</p>
+        <button onClick={() => navigate('/dashboard')} className="mt-10 bg-primary text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary-dark transition-all">
+          RETURN TO PORTAL
+        </button>
+      </motion.div>
+    </div>
   );
 }

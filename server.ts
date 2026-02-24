@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import authRoutes from './server/routes/auth';
+import os from 'os';
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ async function startServer() {
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, host: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -33,7 +34,19 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    const networkInterfaces = os.networkInterfaces();
+    let localIP = 'localhost';
+    for (const iface of Object.values(networkInterfaces)) {
+      for (const alias of iface || []) {
+        if (alias.family === 'IPv4' && !alias.internal) {
+          localIP = alias.address;
+          break;
+        }
+      }
+      if (localIP !== 'localhost') break;
+    }
+    console.log(`  Local:   http://localhost:${PORT}`);
+    console.log(`  Network: http://${localIP}:${PORT}`);
   });
 }
 
