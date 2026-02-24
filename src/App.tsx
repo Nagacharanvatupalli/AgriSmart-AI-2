@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import {
   Sprout,
@@ -24,7 +25,9 @@ import {
   Plus,
   ArrowUpRight,
   Pencil,
-  User
+  User,
+  Wind,
+  CloudRain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
@@ -32,6 +35,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
 import { analyzeCropImage, getAgriculturalAdvice, getSeasonalInsights } from './services/geminiService';
+import { getWeatherData } from './services/weatherService';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import AuthPage from './components/AuthPage';
@@ -313,6 +317,178 @@ function AssistantPage({ chatMessages, userInput, onUserInputChange, onSendMessa
   );
 }
 
+// ── Weather Page Component ──────────────────────────────────────────────────
+interface WeatherPageProps {
+  location: string;
+  weatherData: any;
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  onLocationChange: (newLocation: string) => void;
+}
+
+function WeatherPage({ location, weatherData, isLoading, error, onRetry, onLocationChange }: WeatherPageProps) {
+  const { t, i18n } = useTranslation();
+  const [searchInput, setSearchInput] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      onLocationChange(searchInput.trim());
+      setSearchInput('');
+    }
+  };
+
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-slate-50">
+      <div className="max-w-[1200px] mx-auto">
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div>
+            <h1 className="text-5xl font-bold text-gray-900 tracking-tight flex items-center gap-4">
+              <CloudSun className="text-primary" size={48} />
+              {t('weather.title')}
+            </h1>
+            <p className="text-gray-400 mt-4 text-xl font-medium italic">
+              {t('weather.subtitle', { location: location.split(',')[0] || 'your area' })}
+            </p>
+          </div>
+
+          <form onSubmit={handleSearch} className="flex gap-2 w-full md:max-w-md">
+            <div className="relative flex-1">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder={t('weather.search_placeholder') || "Search for village or city..."}
+                className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium text-sm shadow-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-primary text-white font-bold text-xs uppercase tracking-widest px-8 py-3.5 rounded-2xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+            >
+              {t('weather.search_button') || "Search"}
+            </button>
+          </form>
+        </header>
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
+            <Loader2 className="animate-spin text-primary mb-4" size={48} />
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t('weather.fetching')}</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-red-50 rounded-[40px] border border-dashed border-red-200 text-center px-6">
+            <X className="text-red-400 mb-4" size={48} />
+            <h3 className="text-xl font-bold text-red-900 mb-2">{t('weather.error_title')}</h3>
+            <p className="text-red-600/70 mb-8 max-w-sm">{error}</p>
+            <button
+              onClick={onRetry}
+              className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+            >
+              {t('weather.try_again')}
+            </button>
+          </div>
+        ) : weatherData ? (
+          <div className="space-y-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <WeatherCard
+                label={t('weather.temp')}
+                value={`${weatherData.current.temperature}°C`}
+                icon={<ThermometerSun className="text-orange-500" size={32} />}
+                description="Current temperature of your farm."
+              />
+              <WeatherCard
+                label={t('weather.humidity')}
+                value={`${weatherData.current.humidity}%`}
+                icon={<Droplets className="text-blue-500" size={32} />}
+                description="How much moisture is in the air."
+              />
+              <WeatherCard
+                label={t('weather.wind')}
+                value={`${weatherData.current.windSpeed} km/h`}
+                icon={<Wind className="text-teal-500" size={32} />}
+                description="Fast or slow the wind is blowing."
+              />
+              <WeatherCard
+                label={t('weather.rain')}
+                value={weatherData.current.rain > 0 ? "It is raining" : "No Rain"}
+                icon={<CloudRain className="text-blue-600" size={32} />}
+                description="Check if you need to protect your crops."
+                highlighted={weatherData.current.rain > 0}
+              />
+            </div>
+
+            <section className="space-y-8">
+              <div className="flex items-center gap-3">
+                <Calendar className="text-primary" size={24} />
+                <h2 className="text-3xl font-bold text-gray-900">{t('weather.forecast_title')}</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {weatherData.forecast.map((day: any, i: number) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="bg-white border border-gray-100 p-6 rounded-[30px] flex flex-col items-center text-center gap-3 hover:bg-primary/5 transition-all shadow-md hover:shadow-lg cursor-default"
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      {new Date(day.date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'te' ? 'te-IN' : (i18n.language === 'hi' ? 'hi-IN' : 'ta-IN')), { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </p>
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-primary">
+                      {day.condition.toLowerCase().includes('rain') ? <CloudRain size={24} /> : day.condition.toLowerCase().includes('cloud') ? <CloudSun size={24} /> : <ThermometerSun size={24} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{day.condition}</p>
+                      <p className="text-xs text-gray-500">{day.minTemp}°C to {day.maxTemp}°C</p>
+                    </div>
+                    <div className="mt-2 w-full pt-2 border-t border-gray-200/50">
+                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">
+                        {day.rainChance}% {t('weather.rain_chance')}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[40px] border border-dashed border-gray-200 text-center px-6">
+            <MapPin className="text-gray-300 mb-4" size={48} />
+            <p className="text-gray-400 font-medium italic">{t('weather.no_location')}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WeatherCard({ label, value, icon, description, highlighted }: any) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "p-8 rounded-[40px] border-2 flex flex-col justify-between min-h-[280px] transition-all hover:scale-[1.02]",
+        highlighted
+          ? "bg-primary text-white border-primary shadow-2xl shadow-primary/30"
+          : "bg-white text-gray-900 border-white shadow-xl shadow-gray-200/60"
+      )}
+    >
+      <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6", highlighted ? "bg-white/20" : "bg-gray-50")}>
+        {icon}
+      </div>
+      <div>
+        <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-2", highlighted ? "text-white/60" : "text-gray-400")}>{label}</p>
+        <p className="text-4xl font-bold tracking-tight mb-4">{value}</p>
+        <p className={cn("text-sm font-medium italic", highlighted ? "text-white/70" : "text-gray-500")}>{description}</p>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Main App Component ────────────────────────────────────────────────────────
 export default function App() {
   const navigate = useNavigate();
@@ -324,6 +500,9 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [seasonalData, setSeasonalData] = useState<SeasonalData | null>(null);
   const [location, setLocation] = useState('Bapatla, Chinaganjam');
+  const [weatherData, setWeatherData] = useState<any>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -333,9 +512,11 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedName = localStorage.getItem('userName');
+    const storedLocation = localStorage.getItem('userLocation');
     if (token) {
       setIsLoggedIn(true);
       setUserName(storedName || '');
+      if (storedLocation) setLocation(storedLocation);
     }
   }, []);
 
@@ -345,14 +526,48 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userName');
+    localStorage.removeItem('userLocation');
     setIsLoggedIn(false);
     setUserName('');
+    setLocation('Bapatla, Chinaganjam');
     navigate('/');
   };
 
   useEffect(() => {
     fetchSeasonalData();
+    fetchWeather();
   }, [location]);
+
+  const fetchWeather = async () => {
+    if (!location) return;
+
+    // Check if we already have this data cached recently
+    if (weatherData && location === localStorage.getItem('lastWeatherLocation')) {
+      const lastFetch = localStorage.getItem('lastWeatherFetch');
+      if (lastFetch && (Date.now() - parseInt(lastFetch) < 600000)) { // 10 minutes cache
+        console.log('Using cached weather data');
+        return;
+      }
+    }
+
+    console.log('Fetching new weather data for:', location);
+    setIsWeatherLoading(true);
+    setWeatherError(null);
+    try {
+      const data = await getWeatherData(location);
+      if (data) {
+        setWeatherData(data);
+        localStorage.setItem('lastWeatherFetch', Date.now().toString());
+        localStorage.setItem('lastWeatherLocation', location);
+      } else {
+        setWeatherError("Could not find weather data for your location.");
+      }
+    } catch (err) {
+      setWeatherError("Failed to connect to weather service.");
+    } finally {
+      setIsWeatherLoading(false);
+    }
+  };
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -414,8 +629,8 @@ export default function App() {
       {!isAuthPage && <Navbar isLoggedIn={isLoggedIn} userName={userName} onLogout={handleLogout} />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
-        <Route path="/register" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
+        <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string, loc?: string) => { setIsLoggedIn(true); setUserName(name || ''); if (loc) setLocation(loc); navigate('/dashboard'); }} />} />
+        <Route path="/register" element={<AuthPage onAuthSuccess={(name?: string, loc?: string) => { setIsLoggedIn(true); setUserName(name || ''); if (loc) setLocation(loc); navigate('/dashboard'); }} />} />
         <Route path="/dashboard" element={
           <DashboardPage
             userName={userName}
@@ -445,7 +660,16 @@ export default function App() {
         } />
         <Route path="/market" element={<ComingSoonPage name="Market" />} />
         <Route path="/crops" element={<ComingSoonPage name="Crops" />} />
-        <Route path="/weather" element={<ComingSoonPage name="Weather" />} />
+        <Route path="/weather" element={
+          <WeatherPage
+            location={location}
+            weatherData={weatherData}
+            isLoading={isWeatherLoading}
+            error={weatherError}
+            onRetry={fetchWeather}
+            onLocationChange={setLocation}
+          />
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

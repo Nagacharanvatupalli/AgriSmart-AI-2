@@ -17,13 +17,33 @@ body {
   @apply font-serif;
 }
 
-.markdown-body h1 { @apply text-2xl font-bold mb-4; }
-.markdown-body h2 { @apply text-xl font-bold mb-3 mt-6; }
-.markdown-body h3 { @apply text-lg font-bold mb-2 mt-4; }
-.markdown-body p { @apply mb-4 leading-relaxed; }
-.markdown-body ul { @apply list-disc pl-6 mb-4; }
-.markdown-body li { @apply mb-1; }
-.markdown-body strong { @apply font-semibold; }
+.markdown-body h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.markdown-body h2 {
+  @apply text-xl font-bold mb-3 mt-6;
+}
+
+.markdown-body h3 {
+  @apply text-lg font-bold mb-2 mt-4;
+}
+
+.markdown-body p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-body ul {
+  @apply list-disc pl-6 mb-4;
+}
+
+.markdown-body li {
+  @apply mb-1;
+}
+
+.markdown-body strong {
+  @apply font-semibold;
+}
 
 /* Hero background used across Home and Auth pages */
 .hero-bg {
@@ -40,7 +60,7 @@ body {
 .hero-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.56);
+  background: rgba(0, 0, 0, 0.56);
   z-index: 1;
 }
 

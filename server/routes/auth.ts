@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     console.log('Register request received:', req.body);
-    
+
     const { mobile, password, profile, location, cropDetails } = req.body;
 
     // Validation
@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
 
     console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     const newUser = new User({
       mobile,
       password: hashedPassword,
@@ -37,10 +37,10 @@ router.post('/register', async (req, res) => {
     console.log('Saving user to database...');
     const savedUser = await newUser.save();
     console.log('User registered successfully:', savedUser._id);
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       message: 'User registered successfully',
-      userId: savedUser._id 
+      userId: savedUser._id
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -68,14 +68,15 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
     console.log('User logged in:', user._id);
-    
-    res.json({ 
-      token, 
-      user: { 
+
+    res.json({
+      token,
+      user: {
         id: user._id,
-        mobile: user.mobile, 
-        profile: user.profile 
-      } 
+        mobile: user.mobile,
+        profile: user.profile,
+        location: user.location
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
