@@ -35,6 +35,7 @@ import { analyzeCropImage, getAgriculturalAdvice, getSeasonalInsights } from './
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import AuthPage from './components/AuthPage';
+import CropsPage from './components/CropsPage';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -444,7 +445,7 @@ export default function App() {
           />
         } />
         <Route path="/market" element={<ComingSoonPage name="Market" />} />
-        <Route path="/crops" element={<ComingSoonPage name="Crops" />} />
+        <Route path="/crops" element={<CropsPage />} />
         <Route path="/weather" element={<ComingSoonPage name="Weather" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
