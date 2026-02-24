@@ -39,6 +39,7 @@ import { getWeatherData } from './services/weatherService';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import AuthPage from './components/AuthPage';
+import CropsPage from './components/CropsPage';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -659,6 +660,7 @@ export default function App() {
           />
         } />
         <Route path="/market" element={<ComingSoonPage name="Market" />} />
+<<<<<<< HEAD
         <Route path="/crops" element={<ComingSoonPage name="Crops" />} />
         <Route path="/weather" element={
           <WeatherPage
@@ -670,6 +672,10 @@ export default function App() {
             onLocationChange={setLocation}
           />
         } />
+=======
+        <Route path="/crops" element={<CropsPage />} />
+        <Route path="/weather" element={<ComingSoonPage name="Weather" />} />
+>>>>>>> 5b03e9c5fd2c31e94d55c530abf4046cccdb8a4c
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

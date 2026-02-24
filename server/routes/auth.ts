@@ -74,8 +74,12 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         mobile: user.mobile,
+<<<<<<< HEAD
         profile: user.profile,
         location: user.location
+=======
+        profile: user.profile
+>>>>>>> 5b03e9c5fd2c31e94d55c530abf4046cccdb8a4c
       }
     });
   } catch (error) {
