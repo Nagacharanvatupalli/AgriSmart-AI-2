@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Plus,
     User,
@@ -17,6 +17,7 @@ import {
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getWeatherData } from '../services/weatherService';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -56,6 +57,30 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
         startDate: '',
         endDate: ''
     });
+
+    const [weatherData, setWeatherData] = useState<any>(null);
+    const [weatherLoading, setWeatherLoading] = useState(false);
+    const [weatherError, setWeatherError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!user?.location) return;
+        const locationQuery = [
+            user.location.mandal,
+            user.location.district,
+            user.location.state
+        ].filter(Boolean).join(', ');
+        if (!locationQuery) return;
+
+        setWeatherLoading(true);
+        setWeatherError(null);
+        getWeatherData(locationQuery)
+            .then(data => {
+                if (data) setWeatherData(data);
+                else setWeatherError('Location not found');
+            })
+            .catch(() => setWeatherError('Failed to fetch weather'))
+            .finally(() => setWeatherLoading(false));
+    }, [user?.location?.mandal, user?.location?.district]);
 
     const handleAddCrop = async () => {
         setIsSaving(true);
@@ -232,9 +257,42 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 </header>
 
                                 <div className="space-y-6">
-                                    <WeatherRow label="Morning Temp" value="24°C" />
-                                    <WeatherRow label="Humidity Levels" value="58%" />
-                                    <WeatherRow label="Rain Prediction" value="Low (5%)" highlighted />
+                                    {weatherLoading ? (
+                                        <div className="flex items-center justify-center py-6">
+                                            <Loader2 size={28} className="text-[#00ab55] animate-spin" />
+                                        </div>
+                                    ) : weatherError ? (
+                                        <p className="text-xs text-red-400 text-center py-4">{weatherError}</p>
+                                    ) : weatherData ? (
+                                        <>
+                                            <WeatherRow
+                                                label="Temperature"
+                                                value={`${weatherData.current.temperature}°C`}
+                                            />
+                                            <WeatherRow
+                                                label="Humidity"
+                                                value={`${weatherData.current.humidity}%`}
+                                            />
+                                            <WeatherRow
+                                                label="Rain Today"
+                                                value={weatherData.current.rain > 0 ? `${weatherData.current.rain} mm` : 'None'}
+                                                highlighted={weatherData.current.rain > 0}
+                                            />
+                                            <WeatherRow
+                                                label="Wind Speed"
+                                                value={`${weatherData.current.windSpeed} km/h`}
+                                            />
+                                            {weatherData.forecast[0] && (
+                                                <WeatherRow
+                                                    label="Tomorrow Rain"
+                                                    value={`${weatherData.forecast[0].rainChance}% chance`}
+                                                    highlighted={weatherData.forecast[0].rainChance > 50}
+                                                />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 text-center py-4">Set your location to see weather</p>
+                                    )}
                                 </div>
                             </div>
 

@@ -66,7 +66,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
         const firstName = data.user?.profile?.firstName || '';
         const lastName = data.user?.profile?.lastName || '';
         const fullName = [firstName, lastName].filter(Boolean).join(' ') || data.user?.mobile || '';
+        const userLocation = data.user?.location ? `${data.user.location.mandal}, ${data.user.location.district}, ${data.user.location.state}` : '';
+
         localStorage.setItem('userName', fullName);
+        localStorage.setItem('userLocation', userLocation);
         onAuthSuccess(fullName, data.user);
       } else {
         alert('Login failed. Please check your credentials.');
