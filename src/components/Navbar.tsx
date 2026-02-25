@@ -62,6 +62,7 @@ export default function Navbar({ isLoggedIn, userName, onLogout }: NavbarProps) 
   const navLinks = [
     { name: t('nav.home'), id: '/' },
     { name: t('nav.crops'), id: '/crops' },
+    { name: t('nav.crop_doctor'), id: '/diagnosis' },
     { name: t('nav.weather'), id: '/weather' },
     { name: t('nav.ai_advice'), id: '/assistant' },
     { name: t('nav.market'), id: '/market' },

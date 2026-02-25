@@ -34,7 +34,8 @@ import Markdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
-import { analyzeCropImage, getAgriculturalAdvice, getSeasonalInsights } from './services/geminiService';
+import { getVisualSymptoms, getAgriculturalAdvice, getSeasonalInsights } from './services/geminiService';
+import { getPerplexityAdvice, detectCropDisease } from './services/perplexityService';
 import { getWeatherData } from './services/weatherService';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
@@ -472,9 +473,11 @@ export default function App() {
       navigate('/diagnosis');
 
       try {
-        const result = await analyzeCropImage(base64.split(',')[1], file.type);
-        setDiagnosisResult(result || "Could not analyze image.");
+        // Direct expert diagnosis using Perplexity Vision
+        const result = await detectCropDisease(base64.split(',')[1], file.type);
+        setDiagnosisResult(result || "Could not generate diagnosis.");
       } catch (error) {
+        console.error("Diagnosis flow error:", error);
         setDiagnosisResult("Error analyzing image. Please try again.");
       } finally {
         setIsAnalyzing(false);
@@ -492,7 +495,7 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const response = await getAgriculturalAdvice(userMsg);
+      const response = await getPerplexityAdvice(userMsg);
       setChatMessages(prev => [...prev, { role: 'ai', content: response || "I'm sorry, I couldn't process that." }]);
     } catch (error) {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Error communicating with AI assistant." }]);
@@ -538,6 +541,7 @@ export default function App() {
             isAnalyzing={isAnalyzing}
             diagnosisResult={diagnosisResult}
             onReset={() => { setSelectedImage(null); setDiagnosisResult(null); }}
+            isLoggedIn={isLoggedIn}
           />
         } />
         <Route path="/assistant" element={

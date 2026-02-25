@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import authRoutes from './server/routes/auth';
+import diagnosisRoutes from './server/routes/diagnosis';
 import os from 'os';
 
 dotenv.config();
@@ -11,7 +12,7 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
 
   const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/agrismart';
   mongoose.connect(MONGODB_URI)
@@ -19,6 +20,7 @@ async function startServer() {
     .catch(err => console.error('MongoDB connection error:', err));
 
   app.use('/api/auth', authRoutes);
+  app.use('/api/diagnosis', diagnosisRoutes);
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

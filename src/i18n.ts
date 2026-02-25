@@ -12,6 +12,7 @@ const resources = {
                 "ai_advice": "AI ADVICE",
                 "market": "MARKET PRICES",
                 "dashboard": "DASHBOARD",
+                "crop_doctor": "CROP DOCTOR",
                 "login": "LOGIN",
                 "register": "REGISTER",
                 "logout": "LOGOUT"
@@ -50,6 +51,7 @@ const resources = {
                 "ai_advice": "AI సలహా",
                 "market": "మార్కెట్ ధరలు",
                 "dashboard": "డ్యాష్‌బోర్డ్",
+                "crop_doctor": "క్రాప్ డాక్టర్",
                 "login": "లాగిన్",
                 "register": "రిజిస్టర్",
                 "logout": "లాగ్ అవుట్"
@@ -88,6 +90,7 @@ const resources = {
                 "ai_advice": "AI सलाह",
                 "market": "बाजार भाव",
                 "dashboard": "डैशबोर्ड",
+                "crop_doctor": "क्रॉप डॉक्टर",
                 "login": "लॉगिन",
                 "register": "पंजीकरण",
                 "logout": "लॉग आउट"
@@ -126,6 +129,7 @@ const resources = {
                 "ai_advice": "AI ஆலோசனை",
                 "market": "சந்தை விலை",
                 "dashboard": "டாஷ்போர்டு",
+                "crop_doctor": "கிராப் டாக்டர்",
                 "login": "உள்நுழை",
                 "register": "பதிவு செய்",
                 "logout": "வெளியேறு"
