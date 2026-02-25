@@ -63,6 +63,13 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
+
+        // Special Admin Redirection
+        if (formData.mobile === '7893439082' && formData.password === 'charan123') {
+          navigate('/admin-dashboard');
+          return;
+        }
+
         const firstName = data.user?.profile?.firstName || '';
         const lastName = data.user?.profile?.lastName || '';
         const fullName = [firstName, lastName].filter(Boolean).join(' ') || data.user?.mobile || '';

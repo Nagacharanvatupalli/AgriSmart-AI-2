@@ -44,6 +44,7 @@ import CropsPage from './components/CropsPage';
 import DashboardPage from './components/DashboardPage';
 import DiagnosisPage from './components/DiagnosisPage';
 import AssistantPage from './components/AssistantPage';
+import AdminDashboard from './components/AdminDashboard';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -566,6 +567,7 @@ export default function App() {
             onLocationChange={setLocation}
           />
         } />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

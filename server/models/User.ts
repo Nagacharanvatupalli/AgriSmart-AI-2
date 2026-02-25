@@ -25,6 +25,7 @@ interface IUser extends Document {
     endDate: Date;
     addedAt: Date;
   }[];
+  lastSmsSent?: Date;
 }
 
 const UserSchema = new mongoose.Schema({
@@ -52,6 +53,7 @@ const UserSchema = new mongoose.Schema({
     endDate: Date,
     addedAt: { type: Date, default: Date.now }
   }],
+  lastSmsSent: { type: Date },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

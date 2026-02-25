@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import authRoutes from './server/routes/auth';
 import diagnosisRoutes from './server/routes/diagnosis';
+import adminRoutes from './server/routes/admin';
 import os from 'os';
 
 dotenv.config();
@@ -21,6 +22,7 @@ async function startServer() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/diagnosis', diagnosisRoutes);
+  app.use('/api/admin', adminRoutes);
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
