@@ -29,7 +29,7 @@ const LOCATION_DATA = {
   }
 };
 
-export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: string) => void }) {
+export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: string, user?: any) => void }) {
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -67,7 +67,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
         const lastName = data.user?.profile?.lastName || '';
         const fullName = [firstName, lastName].filter(Boolean).join(' ') || data.user?.mobile || '';
         localStorage.setItem('userName', fullName);
-        onAuthSuccess(fullName);
+        onAuthSuccess(fullName, data.user);
       } else {
         alert('Login failed. Please check your credentials.');
       }

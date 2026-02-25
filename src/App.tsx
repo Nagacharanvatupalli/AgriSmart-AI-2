@@ -36,6 +36,9 @@ import Navbar from './components/Navbar';
 import Home from './components/Home';
 import AuthPage from './components/AuthPage';
 import CropsPage from './components/CropsPage';
+import DashboardPage from './components/DashboardPage';
+import DiagnosisPage from './components/DiagnosisPage';
+import AssistantPage from './components/AssistantPage';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,272 +51,6 @@ interface SeasonalData {
   summary: string;
 }
 
-// ── Dashboard Page Component ──────────────────────────────────────────────────
-interface DashboardPageProps {
-  userName: string;
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-}
-
-function DashboardPage({ userName, onImageUpload, fileInputRef }: DashboardPageProps) {
-  return (
-    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-gray-50/50">
-      <div className="max-w-[1600px] mx-auto">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Farm Management</h1>
-            <p className="text-gray-400 mt-1 font-medium italic">Real-time overview of your agricultural assets.</p>
-          </div>
-          <div className="flex gap-4">
-            <button className="bg-primary text-white font-bold text-xs uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
-              <Plus size={16} /> ADD NEW CROP
-            </button>
-            <button className="bg-white text-primary border-2 border-primary/20 font-bold text-xs uppercase tracking-widest px-8 py-3 rounded-xl hover:bg-primary/5 transition-all">
-              MY CROPS
-            </button>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Profile Card */}
-          <div className="lg:col-span-4 rounded-[40px] bg-white p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col items-center">
-            <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mb-8">
-              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center">
-                <User size={32} className="text-white" />
-              </div>
-            </div>
-
-            <h2 className="text-3xl font-bold text-gray-900 text-center uppercase tracking-tight leading-tight max-w-[200px]">
-              {userName || 'NAGA CHARAN VATUPALLI'}
-            </h2>
-
-            <div className="mt-4 flex items-center gap-1.5 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest">
-              <CheckCircle2 size={12} /> VERIFIED FARMER
-            </div>
-
-            <div className="w-full mt-10 space-y-6">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-2">LOCATION DETAILS</h3>
-
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                  <MapPin size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-300 uppercase">Andhra Pradesh</p>
-                  <p className="text-sm font-bold text-gray-700">Bapatla, Chinaganjam</p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                  <Leaf size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-300 uppercase">Primary Crop</p>
-                  <p className="text-sm font-bold text-gray-700">Paddy</p>
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full mt-10 bg-[#161b22] text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3">
-              <Pencil size={16} /> EDIT PROFILE
-            </button>
-          </div>
-
-          {/* Right Column: Stats and Info */}
-          <div className="lg:col-span-8 flex flex-col gap-8">
-            {/* Top Stats Strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <DashboardStat
-                label="ACTIVE CROP"
-                value="Paddy"
-                icon={<Leaf className="text-green-500" size={24} />}
-              />
-              <DashboardStat
-                label="CYCLE PROGRESS"
-                value="7%"
-                icon={<Calendar className="text-blue-500" size={24} />}
-              />
-              <DashboardStat
-                label="MARKET PRICE"
-                value="↑ 12%"
-                icon={<TrendingUp className="text-orange-500" size={24} />}
-              />
-              <DashboardStat
-                label="IRRIGATION"
-                value="Normal"
-                icon={<Droplets className="text-blue-400" size={24} />}
-              />
-            </div>
-
-            {/* Middle Row: Weather Feed and Recommendation */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-[40px] p-8 shadow-lg shadow-gray-200/50 border border-gray-100">
-                <header className="flex items-center gap-2 mb-8">
-                  <CloudSun className="text-primary" size={20} />
-                  <h3 className="text-lg font-bold text-gray-900 tracking-tight">Daily Weather Feed</h3>
-                </header>
-
-                <div className="space-y-6">
-                  <WeatherRow label="Morning Temp" value="24°C" />
-                  <WeatherRow label="Humidity Levels" value="58%" />
-                  <WeatherRow label="Rain Prediction" value="Low (5%)" highlighted />
-                </div>
-              </div>
-
-              <div className="bg-[#1e5128] rounded-[40px] p-8 shadow-xl shadow-green-900/10 text-white flex flex-col justify-between relative overflow-hidden">
-                <div>
-                  <h3 className="text-xl font-bold tracking-tight mb-4">AI Recommendation</h3>
-                  <p className="text-white/70 text-sm leading-relaxed max-w-[280px]">
-                    Localized analysis for Chinaganjam shows Increasing soil alkalinity.
-                    Consider adjusting phosphate application for your next Paddy cycle.
-                  </p>
-                </div>
-
-                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#d1e2c4] hover:text-white transition-colors mt-8">
-                  ACCESS FULL AI LAB <ArrowUpRight size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <input type="file" ref={fileInputRef} onChange={onImageUpload} className="hidden" accept="image/*" />
-    </div>
-  );
-}
-
-// ── Diagnosis Page Component ─────────────────────────────────────────────────
-interface DiagnosisPageProps {
-  selectedImage: string | null;
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  isAnalyzing: boolean;
-  diagnosisResult: string | null;
-  onReset: () => void;
-}
-
-function DiagnosisPage({ selectedImage, onImageUpload, fileInputRef, isAnalyzing, diagnosisResult, onReset }: DiagnosisPageProps) {
-  return (
-    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-white">
-      <div className="max-w-[1200px] mx-auto space-y-8">
-        <header className="flex items-center justify-between">
-          <div>
-            <h2 className="text-4xl font-bold text-gray-900">Crop Doctor</h2>
-            <p className="text-gray-400 mt-2 font-medium italic">Instant identification of crop diseases and pests.</p>
-          </div>
-          {selectedImage && (
-            <button onClick={onReset} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <X size={24} />
-            </button>
-          )}
-        </header>
-        {!selectedImage ? (
-          <div onClick={() => fileInputRef.current?.click()} className="border-4 border-dashed border-gray-100 rounded-[40px] p-24 flex flex-col items-center justify-center gap-6 cursor-pointer hover:bg-gray-50 transition-all border-spacing-4">
-            <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center"><Upload className="text-primary" size={32} /></div>
-            <div className="text-center">
-              <p className="text-xl font-bold text-gray-900">Drop your crop image here</p>
-              <p className="text-gray-400 text-sm mt-1">Supports JPG, PNG, WEBP (Max 10MB)</p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="space-y-4">
-              <div className="aspect-square rounded-[40px] overflow-hidden border border-gray-100 bg-gray-50 shadow-inner">
-                <img src={selectedImage} alt="Crop to analyze" className="w-full h-full object-cover" />
-              </div>
-              <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 bg-gray-900 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors">SCAN NEW IMAGE</button>
-            </div>
-            <div className="bg-white rounded-[40px] p-10 shadow-xl border border-gray-100 min-h-[400px]">
-              {isAnalyzing ? (
-                <div className="h-full flex flex-col items-center justify-center gap-4">
-                  <div className="relative">
-                    <Loader2 className="animate-spin text-primary" size={64} />
-                    <Leaf className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary/40" size={24} />
-                  </div>
-                  <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-4 animate-pulse">Running AI Diagnostics...</p>
-                </div>
-              ) : diagnosisResult ? (
-                <div className="markdown-body prose prose-slate max-w-none"><Markdown>{diagnosisResult}</Markdown></div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center text-gray-300">
-                  <Camera size={48} className="mb-4 opacity-10" /><p className="font-medium italic">Ready to assist your plants.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        <input type="file" ref={fileInputRef} onChange={onImageUpload} className="hidden" accept="image/*" />
-      </div>
-    </div>
-  );
-}
-
-// ── Assistant Page Component ──────────────────────────────────────────────────
-interface AssistantPageProps {
-  chatMessages: { role: 'user' | 'ai'; content: string }[];
-  userInput: string;
-  onUserInputChange: (val: string) => void;
-  onSendMessage: () => void;
-  isTyping: boolean;
-  chatEndRef: React.RefObject<HTMLDivElement>;
-}
-
-function AssistantPage({ chatMessages, userInput, onUserInputChange, onSendMessage, isTyping, chatEndRef }: AssistantPageProps) {
-  return (
-    <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-gray-50/50 flex flex-col">
-      <div className="max-w-[1000px] mx-auto w-full flex-1 flex flex-col">
-        <header className="mb-8">
-          <h2 className="text-4xl font-bold text-gray-900">AI Advice</h2>
-          <p className="text-gray-400 mt-2 font-medium italic">Your personalized agricultural consultant.</p>
-        </header>
-        <div className="flex-1 bg-white rounded-[40px] shadow-xl border border-gray-100 flex flex-col overflow-hidden mb-6">
-          <div className="flex-1 overflow-y-auto p-8 space-y-8">
-            {chatMessages.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-10">
-                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-6">
-                  <MessageSquare className="text-primary" size={32} />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">How can I help you today?</h3>
-                <p className="text-gray-400 max-w-sm font-medium italic mb-10">Ask me anything about soil health, pest control, or irrigation.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
-                  <QuickQuery text="Best time to plant Paddy?" onClick={() => onUserInputChange("Best time to plant Paddy in Andhra Pradesh?")} />
-                  <QuickQuery text="Organic nitrogen sources?" onClick={() => onUserInputChange("How to improve soil nitrogen naturally?")} />
-                  <QuickQuery text="Tomato blight management?" onClick={() => onUserInputChange("Early signs of tomato blight and organic control?")} />
-                  <QuickQuery text="Weather impact on harvest?" onClick={() => onUserInputChange("How does high humidity affect harvest quality?")} />
-                </div>
-              </div>
-            )}
-            {chatMessages.map((msg, i) => (
-              <div key={i} className={cn("flex flex-col gap-2", msg.role === 'user' ? "items-end" : "items-start")}>
-                <div className={cn("p-6 rounded-[28px] text-sm leading-relaxed max-w-[85%]", msg.role === 'user' ? "bg-primary text-white rounded-tr-none shadow-lg shadow-primary/20" : "bg-gray-50 text-gray-700 border border-gray-100 rounded-tl-none")}>
-                  {msg.role === 'ai' ? <Markdown>{msg.content}</Markdown> : msg.content}
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{msg.role === 'user' ? 'Farmer' : 'Kisan AI'}</span>
-              </div>
-            ))}
-            {isTyping && (
-              <div className="flex items-center gap-3 text-primary/60">
-                <Loader2 size={20} className="animate-spin" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Assistant is thinking...</span>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="p-6 bg-gray-50 border-t border-gray-100">
-            <form onSubmit={(e) => { e.preventDefault(); onSendMessage(); }} className="flex gap-3">
-              <input type="text" value={userInput} onChange={(e) => onUserInputChange(e.target.value)} placeholder="Type your query here..." className="flex-1 bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all font-medium text-sm" />
-              <button type="submit" disabled={!userInput.trim() || isTyping} className="bg-primary text-white p-4 rounded-2xl hover:bg-primary-dark disabled:opacity-50 transition-all shadow-xl shadow-primary/20">
-                <ChevronRight size={24} />
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Main App Component ────────────────────────────────────────────────────────
 export default function App() {
   const navigate = useNavigate();
@@ -324,9 +61,11 @@ export default function App() {
   const [userInput, setUserInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [seasonalData, setSeasonalData] = useState<SeasonalData | null>(null);
-  const [location, setLocation] = useState('Bapatla, Chinaganjam');
+  const [location, setLocation] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [fullUser, setFullUser] = useState<any>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -337,8 +76,144 @@ export default function App() {
     if (token) {
       setIsLoggedIn(true);
       setUserName(storedName || '');
+      fetchUserProfile(token);
     }
   }, []);
+
+  // Keep userName in sync with fullUser
+  useEffect(() => {
+    if (fullUser?.profile?.firstName) {
+      const { firstName, lastName } = fullUser.profile;
+      const fullName = [firstName, lastName].filter(Boolean).join(' ') || fullUser.mobile || '';
+      setUserName(fullName);
+      localStorage.setItem('userName', fullName);
+    }
+  }, [fullUser]);
+
+  const fetchUserProfile = async (token: string) => {
+    setIsProfileLoading(true);
+    try {
+      const response = await fetch('/api/auth/profile', {
+        headers: { 'x-auth-token': token }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFullUser(data);
+        if (data.location) {
+          const locParts = [data.location.district, data.location.mandal].filter(Boolean).join(', ');
+          setLocation(locParts || data.location.state || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      alert('Failed to connect to server. Check if server is running on port 3000.');
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
+  const updateProfile = async (updatedData: any) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify(updatedData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setFullUser(result.user);
+        if (result.user.location) {
+          const locParts = [result.user.location.district, result.user.location.mandal].filter(Boolean).join(', ');
+          setLocation(locParts || result.user.location.state || '');
+        }
+        if (result.user.profile?.firstName) {
+          setUserName(result.user.profile.firstName);
+          localStorage.setItem('userName', result.user.profile.firstName);
+        }
+        return true;
+      } else {
+        const errorData = await response.json();
+        alert('Update failed: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error connecting to server for update.');
+    }
+    return false;
+  };
+
+  const addCrop = async (cropData: any) => {
+    console.log('--- FRONTEND ADD CROP CALL ---');
+    console.log('Payload:', cropData);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found in localStorage!');
+      return false;
+    }
+
+    try {
+      const url = '/api/auth/crops';
+      console.log('Fetching URL:', url);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify(cropData)
+      });
+      console.log('Response Status:', response.status);
+
+      if (response.ok) {
+        const result = await response.json();
+        setFullUser(result.user);
+        return true;
+      } else {
+        const errorData = await response.json();
+        alert('Failed to add crop: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (error: any) {
+      console.error('Error adding crop details:', error);
+      alert('Error connecting to server: ' + (error.message || 'Unknown network error'));
+    }
+    return false;
+  };
+
+  const selectCrop = async (cropId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    try {
+      const response = await fetch('/api/auth/crops/select', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({ cropId })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setFullUser(result.user);
+        return true;
+      } else {
+        const errorData = await response.json();
+        alert('Failed to select crop: ' + (errorData.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error selecting crop:', error);
+      alert('Error connecting to server to select crop.');
+    }
+    return false;
+  };
 
   const { pathname } = useLocation();
   const isAuthPage = ['/login', '/register'].includes(pathname);
@@ -415,13 +290,28 @@ export default function App() {
       {!isAuthPage && <Navbar isLoggedIn={isLoggedIn} userName={userName} onLogout={handleLogout} />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
-        <Route path="/register" element={<AuthPage onAuthSuccess={(name?: string) => { setIsLoggedIn(true); setUserName(name || ''); navigate('/dashboard'); }} />} />
+        <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string, user?: any) => {
+          setIsLoggedIn(true);
+          setUserName(name || '');
+          if (user) setFullUser(user);
+          navigate('/dashboard');
+        }} />} />
+        <Route path="/register" element={<AuthPage onAuthSuccess={(name?: string, user?: any) => {
+          setIsLoggedIn(true);
+          setUserName(name || '');
+          if (user) setFullUser(user);
+          navigate('/dashboard');
+        }} />} />
         <Route path="/dashboard" element={
           <DashboardPage
             userName={userName}
             onImageUpload={handleImageUpload}
             fileInputRef={fileInputRef}
+            user={fullUser}
+            onUpdateProfile={updateProfile}
+            onAddCrop={addCrop}
+            onSelectCrop={selectCrop}
+            isLoading={isProfileLoading}
           />
         } />
         <Route path="/diagnosis" element={
@@ -454,40 +344,6 @@ export default function App() {
 }
 
 // ── Shared mini-components ────────────────────────────────────────────────────
-
-function DashboardStat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-3xl p-6 shadow-md shadow-gray-200/50 border border-gray-100 flex flex-col items-center justify-between min-h-[160px] hover:scale-[1.02] transition-transform cursor-pointer group">
-      <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
-        {icon}
-      </div>
-      <div className="text-center mt-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">{label}</p>
-        <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function WeatherRow({ label, value, highlighted }: { label: string; value: string; highlighted?: boolean }) {
-  return (
-    <div className={cn(
-      "flex justify-between items-center px-6 py-4 rounded-2xl",
-      highlighted ? "bg-blue-50/50 border border-blue-100 text-blue-600" : "bg-gray-50/50 text-gray-600"
-    )}>
-      <span className="text-xs font-bold uppercase tracking-widest opacity-60">{label}</span>
-      <span className="text-sm font-black">{value}</span>
-    </div>
-  );
-}
-
-function QuickQuery({ text, onClick }: { text: string; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="text-left px-5 py-3 rounded-2xl border border-gray-100 bg-white shadow-sm text-xs font-bold text-gray-500 hover:border-primary/30 hover:text-primary transition-all">
-      {text}
-    </button>
-  );
-}
 
 function ComingSoonPage({ name }: { name: string }) {
   const navigate = useNavigate();

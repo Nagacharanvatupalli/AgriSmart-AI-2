@@ -19,6 +19,12 @@ interface IUser extends Document {
     endDate: Date;
     soilReportUrl: string;
   };
+  crops: {
+    cropName: string;
+    startDate: Date;
+    endDate: Date;
+    addedAt: Date;
+  }[];
 }
 
 const UserSchema = new mongoose.Schema({
@@ -40,6 +46,12 @@ const UserSchema = new mongoose.Schema({
     endDate: Date,
     soilReportUrl: String,
   },
+  crops: [{
+    cropName: String,
+    startDate: Date,
+    endDate: Date,
+    addedAt: { type: Date, default: Date.now }
+  }],
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
