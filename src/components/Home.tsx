@@ -64,7 +64,7 @@ export default function Home() {
                 <h2 className="text-4xl font-bold text-gray-900 tracking-tight">Project Information</h2>
               </div>
               <p className="text-gray-600 leading-relaxed text-xl font-light">
-                KisanPortal is a cutting-edge platform designed to empower farmers with the latest advancements in Artificial Intelligence and Machine Learning. Our system provides real-time insights, precise crop diagnosis, and personalized agricultural advice to optimize yields and promote sustainable farming practices globally.
+                AgriSmartAI is a cutting-edge platform designed to empower farmers with the latest advancements in Artificial Intelligence and Machine Learning. Our system provides real-time insights, precise crop diagnosis, and personalized agricultural advice to optimize yields and promote sustainable farming practices globally.
               </p>
               <div className="grid grid-cols-2 gap-6 pt-6">
                 <div className="p-6 border border-gray-100 rounded-3xl bg-gray-50/50">
@@ -86,7 +86,7 @@ export default function Home() {
                 <h2 className="text-4xl font-bold text-gray-900 tracking-tight">Our Motivation</h2>
               </div>
               <p className="text-gray-600 leading-relaxed text-xl font-light">
-                The motivation behind KisanPortal stems from the urgent need to address global food security challenges. By bridging the gap between traditional farming wisdom and modern technology, we aim to reduce crop loss, minimize chemical usage, and increase the economic stability of farming communities worldwide.
+                The motivation behind AgriSmartAI stems from the urgent need to address global food security challenges. By bridging the gap between traditional farming wisdom and modern technology, we aim to reduce crop loss, minimize chemical usage, and increase the economic stability of farming communities worldwide.
               </p>
               <div className="flex items-start gap-6 p-8 bg-primary/5 rounded-[40px] border border-primary/10">
                 <Lightbulb className="text-primary shrink-0 mt-1" size={32} />
@@ -103,7 +103,10 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
             <div className="col-span-1 md:col-span-2">
-              <span className="text-3xl font-bold tracking-tight">KisanPortal</span>
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="AgriSmartAI" className="w-16 h-16 object-contain" />
+                <span className="text-3xl font-bold tracking-tight">AgriSmartAI</span>
+              </div>
               <p className="mt-6 text-gray-500 max-w-md text-lg font-light leading-relaxed">
                 Revolutionizing agriculture through smart technology and data-driven insights. We believe in a future where every farmer has an expert in their pocket.
               </p>
@@ -120,14 +123,14 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-6 text-lg">Contact</h4>
               <ul className="space-y-4 text-gray-500">
-                <li>info@kisanportal.ai</li>
+                <li>info@agrismartai.com</li>
                 <li>+1 (555) 123-4567</li>
                 <li>123 Farm Road, Silicon Valley</li>
               </ul>
             </div>
           </div>
           <div className="pt-12 border-t border-white/5 text-center text-gray-600 text-sm">
-            <p>&copy; {new Date().getFullYear()} KisanPortal. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} AgriSmartAI. All rights reserved.</p>
           </div>
         </div>
       </footer>

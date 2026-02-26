@@ -36,38 +36,135 @@ interface MarketData {
     source: string;
 }
 
-const POPULAR_CROPS = ['Paddy', 'Cotton', 'Chilli', 'Maize', 'Turmeric', 'Onion', 'Tomato'];
+const ALL_COMMODITIES = [
+    'Ajwain Husk', 'Ajwan', 'Almond(Badam)', 'Aloe Vera', 'Alsandikai', 'Amaranthus', 'Ambat Chuka',
+    'Ambady/Mesta/Patson', 'Amla(Nelli Kai)', 'Amranthas Red', 'Anthorium', 'Apple', 'Apricot(Jardalu/Khumani)',
+    'Arecanut(Betelnut/Supari)', 'Arrowroot', 'Asalia', 'Asgand', 'Ashgourd', 'Ashoka', 'Ashwagandha',
+    'Asparagus', 'Astera', 'Atis', 'Avocado', 'Baby Corn', 'Bael', 'Bajji chilli', 'Bajra(Pearl Millet/Cumbu)',
+    'Balekai', 'balsam', 'Bamboo Shoot', 'Banana', 'Banana - Green', 'Banana flower', 'Banana Leaf',
+    'Banana stem', 'Barley(Jau)', 'Barnyard Millet', 'basil', 'Beaten Rice', 'Beetroot', 'Ber(Zizyphus/Borehannu)',
+    'Betal Leaves', 'Betelnuts', 'Bhindi(Ladies Finger)', 'Bilimbi', 'Binoula', 'Bitter gourd',
+    'Black Currant', 'Black pepper', 'Blueberry', 'BOP', 'Borehannu', 'Bottle gourd', 'Bran',
+    'Bread Fruit', 'Brinjal', 'Brocoli', 'Broken Rice', 'Browntop Millet', 'Bunch Beans', 'Cabbage',
+    'Calendula', 'Camel Hair', 'Capsicum', 'Cardamoms', 'Carnation', 'Carissa(Karvand)', 'Carrot',
+    'Cashew Kernnel', 'Cashew nuts', 'Castor Seed', 'Cauliflower', 'Chakhao(Black Rice)', 'Chakotha',
+    'Chandrashoor', 'Chapparad Avare', 'Chhappan Kaddu', 'Cherry', 'Chicory(Chikori/Kasni)', 'Chikoos(Sapota)',
+    'Chili Red', 'Chilly Capsicum', 'Chrysanthemum', 'Chrysanthemum(Loose)', 'Cinamon(Dalchini)', 'cineraria',
+    'Clarkia', 'Cluster beans', 'Cloves', 'Coca', 'Cocoa', 'Coconut', 'Coconut Coir', 'Coconut Seed',
+    'Coffee', 'Colacasia', 'Coleus', 'Copra', 'Coriander(Leaves)', 'Corriander seed', 'Cossandra',
+    'Cotton', 'Cotton Seed', 'Cowpea(Veg)', 'Cucumbar(Kheera)', 'Cummin Seed(Jeera)', 'Curry Leaf',
+    'Custard Apple(Sharifa)', 'Daila(Chandni)', 'Dates', 'Delha', 'Delha', 'dhawai flowers', 'Dhaincha',
+    'Dhaincha(Seed)', 'dianthus', 'Double Beans', 'Dragon fruit', 'dried mango', 'Drumstick', 'Dry Chillies',
+    'Dry Fodder', 'Dry Grapes', 'Duster Beans', 'Egypian Clover(Barseem)', 'Elephant Yam(Suran)/Amorphophallus',
+    'Field Bean(Anumulu)', 'Field Pea', 'Fig (Dry)', 'Fig(Anjura/Anjeer)', 'Flax seeds', 'Flowers-Others',
+    'Foxtail Millet(Navane)', 'French Beans(Frasbean)', 'Galgal(Lemon)', 'Gamphrena', 'Garcinia', 'Garlic',
+    'Gerbera', 'Gherkin', 'Ghost Pepper(King Chilli)', 'Ginger Seed', 'Ginger(Dry)', 'Ginger(Green)',
+    'Gladiolus Bulb', 'Gladiolus Cut Flower', 'Glardia', 'Goat Hair', 'golden rod', 'Goose berry(Nellikkai)',
+    'Goosefoot', 'Gramflour', 'Gram Raw(Chholia)', 'Grapes', 'Green Avare(W)', 'Green Chilli',
+    'Green Fodder', 'Green Tea', 'Grey Fruit', 'Ground Nut Seed', 'Groundnut', 'Groundnut pods(raw)',
+    'Groundnut(Split)', 'Guar', 'Guava', 'Gur(Jaggery)', 'Gurellu', 'gypsophila', 'Haralekai', 'Heliconia species',
+    'Hilsa', 'Hog Plum', 'Honey', 'Honge seed', 'hybrid Cumbu', 'hydrangea', 'Indian Beans(Seam)',
+    'Indian Colza(Sarson)', 'Indian Sherbet Berry(Phalsa)', 'Irish', 'Isabgul(Psyllium)', 'Isbgol', 'Jack Fruit(Ripe)',
+    'Jackfruit Seed', 'Jackfruit(Green/Raw/Unripe)', 'Jaee', 'Jaffri', 'Jaggery', 'Jamamkhan', 'Jamun(Narale Hannu)',
+    'Jarbara', 'Jasmine', 'Javi', 'Jowar(Sorghum)', 'Jute', 'Kacholam', 'Kagda', 'Kakada', 'kakatan', 'Kankambra',
+    'karanja seeds', 'Karbuja(Musk Melon)', 'Kartali(Kantola)', 'Kevda', 'Kharif Mash', 'Khirni', 'Khoya', 'Kinnow',
+    'Kiwi Fruit', 'Knool Khol', 'Kodo Millet(Varagu)', 'Kuchur', 'Kuchur - Kusum Seed', 'Kutki', 'Ladies Finger',
+    'Laha', 'Large Cardamom', 'Leafy Vegetable', 'Leek', 'Lemon', 'Lemongrass', 'Lesser Yam', 'Lilly', 'Lime',
+    'Limonia(status)', 'Linseed', 'Lint', 'liquor turmeric', 'Litchi', 'Little gourd(Kundru)', 'Little Millet',
+    'Long Melon(Kakri)', 'Lotus', 'Lotus Sticks', 'Lukad', 'Lupine', 'Ma.Inji', 'Mace', 'macoy', 'Mahedi', 'Mahua',
+    'Maida Atta', 'Maize', 'Makhana(Foxnut)', 'mango powder', 'Mango', 'Mango(Raw-Ripe)', 'Mangosteen',
+    'Maragensu', 'Marasebu', 'Marget', 'Marigold(Calcutta)', 'Marigold(loose)', 'Marikozhunthu', 'Mash', 'Mashrooms',
+    'Meal Maker (Soya Chunks)', 'MENETC*3', 'Mentha Oil', 'Mentha(Mint)', 'Methi Seeds', 'Methi(Leaves)', 'Millets',
+    'Mint(Pudina)', 'Mousambi(Sweet Lime)', 'Muesli', 'Muleti', 'Mulberry', 'Mustard', 'Muskmelon Seeds',
+    'Myrobolan(Harad)', 'Nearle Hannu', 'Neem Fruits', 'Nelli Kai', 'Nerium', 'nigella', 'nigella seeds',
+    'Niger Seed(Ramtil)', 'Nutmeg', 'Onion', 'Onion Green', 'Orange', 'Orchid', 'Other green and fresh vegetables',
+    'Paddy(Basmati)', 'Paddy(Common)', 'Palash flowers', 'Papaya', 'Papaya(Raw)', 'Passion Fruit',
+    'Patti Calcutta', 'Peach', 'Pea Pod/Pea Cod/हरी मटर', 'Pear(Marasebu)', 'Peas Wet', 'Pincushion Flower',
+    'Pine Nut(Chilgoza /Niyoza)', 'Pineapple', 'pippali', 'Pista(Pistachio)', 'Plum', 'Pointed gourd(Parval)',
+    'Pokcha Leafy Veg', 'Polherb', 'Pomegranate', 'Poppy capsules', 'poppy seeds', 'Potato', 'Proso Millet',
+    'Pumpkin', 'Pundi', 'Pupadia', 'Purslane', 'Quince(Nakh)', 'Rab/Liquid Jaggery/Molasses', 'Raddish', 'Ragi(Finger Millet)',
+    'Raibel', 'Rajgir', 'Rala', 'Rambutan', 'Ramphal', 'Rat Tail Radish(Mogari)', 'Raw Biomass(Agro Residue)',
+    'Raya', 'Rayee', 'Red Cabbage', 'Red Gourd', 'Ribbed Celery', 'Riccbcan', 'Rice', 'Ridge Gourd(Permal/Hybrid Gourd)',
+    'Ridgeguard(Tori)', 'Rose(Local)', 'Rose(Loose))', 'Rose(Tata)', 'Round Chilli', 'Round gourd', 'Rubber',
+    'Sabu Dan', 'Safflower', 'Saffron', 'Sajje', 'Sal Seeds', 'salvia', 'Same/Savi', 'Sanai/Sunhemp', 'sanay',
+    'Sarasum', 'Season Leaves', 'Seegu', 'Seemebadnekai', 'Seetapal', 'Sehuwan (Seed)', 'Sem', 'Sesamum(Sesame,Gingelly,Til)',
+    'sevanti', 'Siddota', 'Siru Kizhagu', 'Skin And Hide', 'Snakeguard', 'Snow Mountain Garlic', 'Soanf', 'Soha',
+    'Soji', 'Sompu', 'Soursop', 'Soyabean', 'Spinach', 'Sponge gourd', 'Squash(Chappal Kadoo)', 'Star Fruit(Kamraikh)',
+    'stevia', 'stone pulverizer', 'Strawberry', 'Sugar', 'Sugar Snap Peas', 'Sugarcane', 'Sunflower', 'Sunflower Seed',
+    'Suram', 'Surat Beans(Papadi)', 'Suva(Dill Seed)', 'Suvarna Gadde', 'Swan Phali(Flat Bean)', 'Swan Plant (Green Herb)',
+    'Swanflower', 'Sweet Corn', 'Sweet Potato', 'Sweet Pumpkin', 'Sweet Saag', 'Sweet Sultan', 'sweet william',
+    'T.V. Cumbu', 'Tapioca', 'Taramira', 'Taro (Arvi) Leaves', 'Taro (Arvi) Stem', 'Tea', 'Tender Coconut',
+    'Tendu Leaves/Kendu leaves/Bidi Leaves', 'Thogrikai', 'Thondekai', 'Tinda', 'Tobacco', 'Tomato', 'Toria',
+    'Tube Flower', 'Tube Rose(Double)', 'Tube Rose(Loose)', 'Tube Rose(Single)', 'Tulasi', 'tulip', 'Turmeric',
+    'Turmeric(raw)', 'Turnip', 'vadang', 'Vatsanabha', 'Walnut', 'Water Apple', 'Water chestnut', 'Water Melon',
+    'Water Plant(Kaseru)', 'Wheat', 'Wheat Atta', 'White Muesli', 'White Pumpkin', 'Wild Cucumber', 'Wild Garlic / Shoots',
+    'Wild lemon', 'Wild Melon', 'Wild Spinach', 'Wood Apple', 'Wool', 'Yam', 'Yam Bean / Mexican Turnip(Bankla)',
+    'Yam(Ratalu)'
+];
 
 export default function MarketPage() {
-    const [searchMarket, setSearchMarket] = useState('');
-    const [selectedCrop, setSelectedCrop] = useState('Paddy');
+    const [searchMarket, setSearchMarket] = useState(() => localStorage.getItem('market_location') || 'Guntur');
+    const [selectedCrop, setSelectedCrop] = useState(() => localStorage.getItem('market_selectedCrop') || '');
+    const [cropSearch, setCropSearch] = useState('');
     const [marketData, setMarketData] = useState<MarketData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const filteredCommodities = ALL_COMMODITIES
+        .filter(crop => crop.toLowerCase().includes(cropSearch.toLowerCase()))
+        .sort((a, b) => {
+            if (a === selectedCrop) return -1;
+            if (b === selectedCrop) return 1;
+            return 0;
+        });
+
     const fetchMarketPrices = async (crop: string, market: string) => {
+        if (!crop) return;
         setIsLoading(true);
         setError(null);
+        setMarketData(null); // Clear previous data
         try {
             const response = await fetch(`/api/market/prices?crop=${encodeURIComponent(crop)}&market=${encodeURIComponent(market || 'India')}`);
-            if (!response.ok) throw new Error('Failed to fetch market data');
+            if (!response.ok) throw new Error('Failed to connect to market node');
+
             const data = await response.json();
+
+            // Validate that we actually got valid price data
+            // If modal_price is missing, 0, or not a valid number, we treat it as "No APMs available"
+            const modalPrice = parseFloat(data.modal_price);
+            if (!data || isNaN(modalPrice) || modalPrice === 0) {
+                throw new Error('NO APMS are available at that location');
+            }
+
             setMarketData(data);
         } catch (err: any) {
-            setError(err.message || 'Error connecting to market service');
+            setError(err.message || 'NO APMS are available at that location');
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Persist selected crop and market to localStorage
     useEffect(() => {
-        // Initial fetch for overall India or a default state
-        fetchMarketPrices(selectedCrop, 'Guntur');
+        if (selectedCrop) localStorage.setItem('market_selectedCrop', selectedCrop);
+    }, [selectedCrop]);
+
+    useEffect(() => {
+        if (searchMarket) localStorage.setItem('market_location', searchMarket);
+    }, [searchMarket]);
+
+    // Auto-fetch on mount if a crop was previously selected
+    useEffect(() => {
+        if (selectedCrop) {
+            fetchMarketPrices(selectedCrop, searchMarket);
+        }
     }, []);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        fetchMarketPrices(selectedCrop, searchMarket);
+        if (selectedCrop) {
+            fetchMarketPrices(selectedCrop, searchMarket);
+        }
     };
 
     return (
@@ -119,38 +216,45 @@ export default function MarketPage() {
                                 <Filter size={18} className="text-[#00ab55]" />
                                 <h3 className="text-sm font-bold text-black uppercase tracking-widest">Select Commodity</h3>
                             </div>
-                            <div className="flex flex-col gap-2">
-                                {POPULAR_CROPS.map(crop => (
-                                    <button
-                                        key={crop}
-                                        onClick={() => {
-                                            setSelectedCrop(crop);
-                                            fetchMarketPrices(crop, searchMarket);
-                                        }}
-                                        className={cn(
-                                            "flex items-center justify-between px-5 py-4 rounded-2xl text-sm font-bold transition-all",
-                                            selectedCrop === crop
-                                                ? "bg-[#00ab55]/5 text-[#00ab55] border border-[#00ab55]/20 ring-1 ring-[#00ab55]/10"
-                                                : "text-gray-500 hover:bg-gray-50 border border-transparent"
-                                        )}
-                                    >
-                                        {crop}
-                                        {selectedCrop === crop && <ArrowRight size={14} />}
-                                    </button>
-                                ))}
+                            <div className="space-y-4">
+                                <div className="relative group">
+                                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00ab55] transition-colors" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search commodity..."
+                                        value={cropSearch}
+                                        onChange={(e) => setCropSearch(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#00ab55]/5 focus:border-[#00ab55]/20 transition-all font-semibold text-xs"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {filteredCommodities.map(crop => (
+                                        <button
+                                            key={crop}
+                                            onClick={() => {
+                                                setSelectedCrop(crop);
+                                                fetchMarketPrices(crop, searchMarket);
+                                            }}
+                                            className={cn(
+                                                "flex items-center justify-between px-5 py-3.5 rounded-2xl text-xs font-bold transition-all text-left",
+                                                selectedCrop === crop
+                                                    ? "bg-[#00ab55]/5 text-[#00ab55] border border-[#00ab55]/20 ring-1 ring-[#00ab55]/10"
+                                                    : "text-gray-500 hover:bg-gray-50 border border-transparent"
+                                            )}
+                                        >
+                                            <span className="truncate">{crop}</span>
+                                            {selectedCrop === crop && <ArrowRight size={14} className="flex-shrink-0" />}
+                                        </button>
+                                    ))}
+                                    {filteredCommodities.length === 0 && (
+                                        <div className="py-8 text-center">
+                                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">No matching crops</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-[#0a2635] rounded-[32px] p-8 text-white relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12 group-hover:bg-white/10 transition-all duration-500" />
-                            <h4 className="text-lg font-bold mb-4">Price Insights</h4>
-                            <p className="text-white/60 text-sm leading-relaxed mb-6 italic">
-                                Wholesale prices are updated based on the latest Agmarknet bulletins. Variations may occur due to quality grades.
-                            </p>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#00ab55]">
-                                <AlertCircle size={14} /> GRADE-A DATA
-                            </div>
-                        </div>
                     </div>
 
                     {/* Main Content Area */}
@@ -172,21 +276,27 @@ export default function MarketPage() {
                                 </motion.div>
                             ) : error ? (
                                 <motion.div
-                                    key="error"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="h-[400px] flex flex-col items-center justify-center bg-red-50 rounded-[40px] border border-dashed border-red-100 p-8 text-center"
+                                    key="no-data"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="h-[500px] flex flex-col items-center justify-center bg-white rounded-[40px] border border-gray-100 p-12 text-center shadow-sm"
                                 >
-                                    <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-red-500 mb-6">
-                                        <AlertCircle size={32} />
+                                    <div className="w-20 h-20 bg-[#00ab55]/5 rounded-[32px] flex items-center justify-center text-[#00ab55] mb-8">
+                                        <MapPin size={32} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-red-900 mb-2">Market Data Unavailable</h3>
-                                    <p className="text-red-500 font-medium italic max-w-sm mb-8">{error}</p>
+                                    <h3 className="text-2xl font-bold text-[#0a2635] mb-3">No Price Data Available</h3>
+                                    <p className="text-gray-400 font-medium max-w-md mb-2 leading-relaxed">
+                                        Price predictions for <span className="font-bold text-[#0a2635]">{selectedCrop}</span> are currently not available at <span className="font-bold text-[#0a2635]">{searchMarket || 'this location'}</span>.
+                                    </p>
+                                    <p className="text-gray-400 text-sm italic max-w-sm mb-10">
+                                        Try searching for a different commodity or another market location.
+                                    </p>
                                     <button
                                         onClick={() => fetchMarketPrices(selectedCrop, searchMarket)}
-                                        className="bg-red-500 text-white px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                                        className="bg-[#0a2635] text-white px-10 py-4 rounded-[24px] font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center gap-3"
                                     >
-                                        RETRY ANALYSIS
+                                        <Search size={16} />
+                                        TRY AGAIN
                                     </button>
                                 </motion.div>
                             ) : marketData ? (
@@ -271,7 +381,22 @@ export default function MarketPage() {
                                         </div>
                                     </div>
                                 </motion.div>
-                            ) : null}
+                            ) : (
+                                <motion.div
+                                    key="empty"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="h-[500px] flex flex-col items-center justify-center bg-white rounded-[40px] border border-dashed border-gray-100 p-12 text-center"
+                                >
+                                    <div className="w-20 h-20 bg-[#00ab55]/5 rounded-[32px] flex items-center justify-center text-[#00ab55] mb-8">
+                                        <Search size={32} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-[#0a2635] mb-3">Begin Your Market Search</h3>
+                                    <p className="text-gray-400 font-medium italic max-w-sm">
+                                        Select a commodity from the sidebar to view live wholesale prices and historical trends across Indian markets.
+                                    </p>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
                     </div>
                 </div>

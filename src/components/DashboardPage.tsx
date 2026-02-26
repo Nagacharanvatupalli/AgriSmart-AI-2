@@ -12,7 +12,10 @@ import {
     CloudSun,
     ArrowUpRight,
     X,
-    Loader2
+    Loader2,
+    BarChart3,
+    ArrowUp,
+    ArrowDown
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -62,6 +65,10 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
     const [weatherLoading, setWeatherLoading] = useState(false);
     const [weatherError, setWeatherError] = useState<string | null>(null);
 
+    const [marketData, setMarketData] = useState<any>(null);
+    const [marketLoading, setMarketLoading] = useState(false);
+    const [marketError, setMarketError] = useState<string | null>(null);
+
     useEffect(() => {
         if (!user?.location) return;
         const locationQuery = [
@@ -81,6 +88,31 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
             .catch(() => setWeatherError('Failed to fetch weather'))
             .finally(() => setWeatherLoading(false));
     }, [user?.location?.mandal, user?.location?.district]);
+
+    // Fetch market price for active crop
+    useEffect(() => {
+        const cropName = user?.cropDetails?.cropName;
+        const district = user?.location?.district;
+        if (!cropName) return;
+
+        setMarketLoading(true);
+        setMarketError(null);
+        fetch(`/api/market/prices?crop=${encodeURIComponent(cropName)}&market=${encodeURIComponent(district || 'India')}`)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch');
+                return res.json();
+            })
+            .then(data => {
+                const modalPrice = parseFloat(data.modal_price);
+                if (!data || isNaN(modalPrice) || modalPrice === 0) {
+                    setMarketError('No price data');
+                } else {
+                    setMarketData(data);
+                }
+            })
+            .catch(() => setMarketError('No price data'))
+            .finally(() => setMarketLoading(false));
+    }, [user?.cropDetails?.cropName, user?.location?.district]);
 
     const handleAddCrop = async () => {
         setIsSaving(true);
@@ -238,7 +270,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             />
                             <DashboardStat
                                 label="MARKET PRICE"
-                                value="↑ 12%"
+                                value={marketLoading ? '...' : marketData ? `₹${marketData.modal_price}` : 'N/A'}
                                 icon={<TrendingUp className="text-orange-500" size={24} />}
                             />
                             <DashboardStat
@@ -310,6 +342,66 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                     ACCESS FULL AI LAB <ArrowUpRight size={14} />
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Market Price Widget */}
+                        <div className="bg-white rounded-[40px] p-8 shadow-lg shadow-gray-200/50 border border-gray-100">
+                            <header className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <BarChart3 className="text-[#00ab55]" size={20} />
+                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">Market Price</h3>
+                                </div>
+                                <button
+                                    onClick={() => window.location.href = '/market'}
+                                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[#00ab55] hover:text-[#00964a] transition-colors"
+                                >
+                                    VIEW ALL <ArrowUpRight size={12} />
+                                </button>
+                            </header>
+
+                            {marketLoading ? (
+                                <div className="flex items-center justify-center py-10">
+                                    <Loader2 size={28} className="text-[#00ab55] animate-spin" />
+                                </div>
+                            ) : marketError ? (
+                                <div className="py-8 text-center">
+                                    <p className="text-gray-400 text-sm font-medium">No market data available for your current crop.</p>
+                                    <p className="text-gray-300 text-xs mt-1 italic">Set your primary crop in profile to see live prices.</p>
+                                </div>
+                            ) : marketData ? (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-5 bg-[#00ab55]/5 rounded-2xl border border-[#00ab55]/10">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Commodity</p>
+                                            <p className="text-lg font-bold text-gray-900">{marketData.commodity}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Modal Price</p>
+                                            <p className="text-2xl font-bold text-[#00ab55]">₹{marketData.modal_price}</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+                                            <ArrowDown className="text-red-400" size={16} />
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Min</p>
+                                                <p className="text-sm font-bold text-gray-700">₹{marketData.min_price}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
+                                            <ArrowUp className="text-green-500" size={16} />
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Max</p>
+                                                <p className="text-sm font-bold text-gray-700">₹{marketData.max_price}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-2xl">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Market</span>
+                                        <span className="text-xs font-bold text-gray-600">{marketData.market}, {marketData.district}</span>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>

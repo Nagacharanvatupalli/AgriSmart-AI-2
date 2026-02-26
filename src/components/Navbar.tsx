@@ -74,8 +74,8 @@ export default function Navbar({ isLoggedIn, userName, onLogout }: NavbarProps) 
       <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
         <div className="flex justify-between h-14 items-center">
           <div className="flex-shrink-0 flex items-center cursor-pointer gap-2" onClick={() => navigate('/')}>
-            <Sprout className="text-[#3b8e4f]" size={20} />
-            <span className="text-xl font-bold tracking-tight text-white">KisanPortal</span>
+            <img src="/logo.png" alt="AgriSmartAI" className="w-[60px] h-[60px] object-contain" />
+            <span className="text-xl font-bold tracking-tight text-white">AgriSmartAI</span>
           </div>
 
           {/* Desktop nav */}

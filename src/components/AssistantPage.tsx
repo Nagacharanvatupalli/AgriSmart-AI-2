@@ -62,7 +62,7 @@ export default function AssistantPage({
                                     {msg.role === 'ai' ? <Markdown>{msg.content}</Markdown> : msg.content}
                                 </div>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-                                    {msg.role === 'user' ? 'Farmer' : 'Kisan AI'}
+                                    {msg.role === 'user' ? 'Farmer' : 'AgriSmart AI'}
                                 </span>
                             </div>
                         ))}
