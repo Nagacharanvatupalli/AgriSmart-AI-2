@@ -45,6 +45,7 @@ import DashboardPage from './components/DashboardPage';
 import DiagnosisPage from './components/DiagnosisPage';
 import AssistantPage from './components/AssistantPage';
 import AdminDashboard from './components/AdminDashboard';
+import MarketPage from './components/MarketPage';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -555,7 +556,7 @@ export default function App() {
             chatEndRef={chatEndRef}
           />
         } />
-        <Route path="/market" element={<ComingSoonPage name="Market" />} />
+        <Route path="/market" element={<MarketPage />} />
         <Route path="/crops" element={<CropsPage />} />
         <Route path="/weather" element={
           <WeatherPage
