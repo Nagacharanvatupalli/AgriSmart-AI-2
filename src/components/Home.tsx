@@ -17,7 +17,7 @@ export default function Home() {
             backgroundPosition: 'center'
           }}
         >
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
 
         <div className="relative z-10 text-left max-w-4xl">
@@ -25,7 +25,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl lg:text-8xl font-serif text-white mb-8 leading-[0.9] italic font-light"
+            className="text-3xl md:text-5xl lg:text-7xl font-comfortaa text-white mb-8 leading-[1] font-bold"
           >
             "The discovery of agriculture was the first big step toward a civilized life."
           </motion.h1>
@@ -90,7 +90,7 @@ export default function Home() {
               </p>
               <div className="flex items-start gap-6 p-8 bg-primary/5 rounded-[40px] border border-primary/10">
                 <Lightbulb className="text-primary shrink-0 mt-1" size={32} />
-                <p className="text-lg italic text-gray-700 font-serif">
+                <p className="text-base text-gray-800 font-comfortaa font-bold leading-snug">
                   "Empowering the hands that feed the world through intelligent, accessible technology."
                 </p>
               </div>
@@ -123,9 +123,9 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-6 text-lg">Contact</h4>
               <ul className="space-y-4 text-gray-500">
-                <li>info@agrismartai.com</li>
-                <li>+1 (555) 123-4567</li>
-                <li>123 Farm Road, Silicon Valley</li>
+                <li>nagacharanvatupalli@gmail.com</li>
+                <li>+91 78934 39082</li>
+                <li>SRKR Engineering College,Bhimavaram</li>
               </ul>
             </div>
           </div>

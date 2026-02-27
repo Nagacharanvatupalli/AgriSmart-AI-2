@@ -48,13 +48,19 @@ async function getWeatherData(location: { state: string, district: string, manda
         console.log(`[ADMIN] Found location for ${usedSegment}: ${name} (${latitude}, ${longitude})`);
 
         const weatherResp = await axios.get(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,precipitation&daily=temperature_2m_max,precipitation_probability_max&timezone=auto`,
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,precipitation_probability&forecast_hours=24&timezone=auto`,
             { timeout: 10000 }
         );
 
+        const hourlyTemps = weatherResp.data.hourly.temperature_2m;
+        const hourlyRainProbs = weatherResp.data.hourly.precipitation_probability;
+
+        const maxTemp = Math.max(...hourlyTemps);
+        const maxRainProb = Math.max(...hourlyRainProbs);
+
         return {
-            temp: weatherResp.data.current.temperature_2m,
-            rainProb: weatherResp.data.daily.precipitation_probability_max[0],
+            temp: maxTemp,
+            rainProb: maxRainProb,
             resolvedName: name
         };
     } catch (e) {
@@ -79,20 +85,24 @@ router.post('/check-weather', async (req, res) => {
             let triggerSms = false;
             let msg = '';
 
-            if (weather.rainProb > 60) {
-                triggerSms = true;
-                msg = `Alert: Heavy rain (${weather.rainProb}%) expected in your area in the next 24 hours. Please protect your ${user.cropDetails?.cropName || 'crops'}.`;
-            } else if (weather.temp > 5) {
-                triggerSms = true;
-                msg = `Alert: High temperature (${weather.temp}°C) detected. Ensure proper irrigation for your ${user.cropDetails?.cropName || 'crops'}.`;
-            }
-
             const lastSent = user.lastSmsSent ? new Date(user.lastSmsSent) : new Date(0);
             const hoursSinceLast = (now.getTime() - lastSent.getTime()) / (1000 * 60 * 60);
 
             let smsStatus = 'Not needed';
+
+            // Check if we need to trigger an SMS
+            if (weather.rainProb > 60) {
+                triggerSms = true;
+                msg = `Alert: Heavy rain (${weather.rainProb}%) expected in your area in the next 24 hours. Please protect your ${user.cropDetails?.cropName || 'crops'}.`;
+            } else if (weather.temp > 5) { // NOTE: condition left as-is from original code which seems low >5, keeping logic intact just moving order
+                triggerSms = true;
+                msg = `Alert: High temperature (${weather.temp}°C) detected. Ensure proper irrigation for your ${user.cropDetails?.cropName || 'crops'}.`;
+            }
+
             if (triggerSms) {
-                if (hoursSinceLast >= 24) {
+                if (hoursSinceLast < 24) {
+                    smsStatus = 'Throttled (Sent in last 24h)';
+                } else {
                     if (twilioClient && TWILIO_PHONE) {
                         try {
                             await twilioClient.messages.create({
@@ -113,8 +123,6 @@ router.post('/check-weather', async (req, res) => {
                         user.lastSmsSent = now;
                         await user.save();
                     }
-                } else {
-                    smsStatus = 'Throttled (Sent in last 24h)';
                 }
             }
 
