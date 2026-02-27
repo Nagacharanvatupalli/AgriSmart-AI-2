@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Search,
     TrendingUp,
@@ -108,6 +109,7 @@ const ALL_COMMODITIES = [
 ];
 
 export default function MarketPage() {
+    const { t } = useTranslation();
     const [searchMarket, setSearchMarket] = useState(() => localStorage.getItem('market_location') || 'Guntur');
     const [selectedCrop, setSelectedCrop] = useState(() => localStorage.getItem('market_selectedCrop') || '');
     const [cropSearch, setCropSearch] = useState('');
@@ -128,7 +130,7 @@ export default function MarketPage() {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            setError('Please log in to see market prices');
+            setError(t('market.no_location_error'));
             return;
         }
 
@@ -144,12 +146,12 @@ export default function MarketPage() {
             const data = await response.json();
 
             if (!Array.isArray(data) || data.length === 0) {
-                throw new Error('NO APMS are available at that location');
+                throw new Error(t('market.no_data_error'));
             }
 
             setMarketData(data);
         } catch (err: any) {
-            setError(err.message || 'NO APMS are available at that location');
+            setError(err.message || t('market.no_data_error'));
         } finally {
             setIsLoading(false);
         }
@@ -193,10 +195,10 @@ export default function MarketPage() {
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#00ab55]/10 text-[#00ab55] w-fit">
                             <TrendingUp size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Live Market Intelligence</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">{t('market.badge')}</span>
                         </div>
-                        <h1 className="text-5xl font-bold text-[#0a2635] tracking-tight">Market Analysis</h1>
-                        <p className="text-gray-500 font-medium italic">Real-time wholesale prices across Indian APMCs.</p>
+                        <h1 className="text-5xl font-bold text-[#0a2635] tracking-tight">{t('market.title')}</h1>
+                        <p className="text-gray-500 font-medium italic">{t('market.subtitle')}</p>
                     </div>
 
                     <form onSubmit={handleSearch} className="flex gap-3 w-full lg:max-w-xl">
@@ -208,7 +210,7 @@ export default function MarketPage() {
                                 type="text"
                                 value={searchMarket}
                                 onChange={(e) => setSearchMarket(e.target.value)}
-                                placeholder="Search APMC / Market Name (e.g. Guntur, Warangal)"
+                                placeholder={t('market.search_placeholder')}
                                 className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[24px] focus:outline-none focus:ring-4 focus:ring-[#00ab55]/5 focus:border-[#00ab55]/20 transition-all font-semibold text-gray-700 shadow-sm"
                             />
                         </div>
@@ -218,7 +220,7 @@ export default function MarketPage() {
                             className="bg-[#0a2635] text-white px-8 py-4 rounded-[24px] font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-200 flex items-center gap-3 disabled:opacity-50"
                         >
                             {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-                            <span className="hidden sm:inline">ANALYZE</span>
+                            <span className="hidden sm:inline">{t('market.analyze')}</span>
                         </button>
                     </form>
                 </header>
@@ -229,14 +231,14 @@ export default function MarketPage() {
                         <div className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
                             <div className="flex items-center gap-2 mb-6">
                                 <Filter size={18} className="text-[#00ab55]" />
-                                <h3 className="text-sm font-bold text-black uppercase tracking-widest">Select Commodity</h3>
+                                <h3 className="text-sm font-bold text-black uppercase tracking-widest">{t('market.select_commodity')}</h3>
                             </div>
                             <div className="space-y-4">
                                 <div className="relative group">
                                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00ab55] transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Search commodity..."
+                                        placeholder={t('market.search_commodity')}
                                         value={cropSearch}
                                         onChange={(e) => setCropSearch(e.target.value)}
                                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#00ab55]/5 focus:border-[#00ab55]/20 transition-all font-semibold text-xs"
@@ -263,7 +265,7 @@ export default function MarketPage() {
                                     ))}
                                     {filteredCommodities.length === 0 && (
                                         <div className="py-8 text-center">
-                                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">No matching crops</p>
+                                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">{t('market.no_matching_crops')}</p>
                                         </div>
                                     )}
                                 </div>
@@ -287,7 +289,7 @@ export default function MarketPage() {
                                         <div className="w-16 h-16 border-4 border-[#00ab55]/10 border-t-[#00ab55] rounded-full animate-spin" />
                                         <TrendingUp className="absolute inset-0 m-auto text-[#00ab55]" size={24} />
                                     </div>
-                                    <p className="mt-6 text-[#00ab55] font-black text-[10px] uppercase tracking-[0.3em]">Querying Market Node...</p>
+                                    <p className="mt-6 text-[#00ab55] font-black text-[10px] uppercase tracking-[0.3em]">{t('market.querying')}</p>
                                 </motion.div>
                             ) : error ? (
                                 <motion.div
@@ -324,11 +326,11 @@ export default function MarketPage() {
                                     {/* Summary Stats */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <PriceStat
-                                            label="Modal Price"
+                                            label={t('market.modal_price')}
                                             price={primaryMarket.modal_price}
                                             sub={primaryMarket.previous_modal_price
-                                                ? `Was ₹${primaryMarket.previous_modal_price} on ${new Date(primaryMarket.previous_date!).toLocaleDateString()}`
-                                                : `Avg. price for ${primaryMarket.commodity}`
+                                                ? t('market.was_price', {price: primaryMarket.previous_modal_price, date: new Date(primaryMarket.previous_date!).toLocaleDateString()})
+                                                : t('market.avg_price', {crop: primaryMarket.commodity})
                                             }
                                             trend={primaryMarket.actual_trend || primaryMarket.trend}
                                             percentage={primaryMarket.percentage_change}
@@ -336,16 +338,16 @@ export default function MarketPage() {
                                             highlight
                                         />
                                         <PriceStat
-                                            label="Min Price"
+                                            label={t('market.min_price')}
                                             price={primaryMarket.min_price}
-                                            sub="Lowest recorded today"
+                                            sub={t('market.lowest_today')}
                                             trend="stable"
                                             icon={<ArrowDown className="text-red-400" size={24} />}
                                         />
                                         <PriceStat
-                                            label="Max Price"
+                                            label={t('market.max_price')}
                                             price={primaryMarket.max_price}
-                                            sub="Highest recorded today"
+                                            sub={t('market.highest_today')}
                                             trend="up"
                                             icon={<ArrowUp className="text-[#00ab55]" size={24} />}
                                         />
@@ -356,20 +358,20 @@ export default function MarketPage() {
                                         <div className="flex-1 bg-white rounded-[40px] p-10 border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col md:flex-row gap-10 items-center">
                                             <div className="w-full md:w-1/3 space-y-6">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Selected Market</p>
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('market.selected_market')}</p>
                                                     <h3 className="text-3xl font-bold text-[#0a2635] tracking-tight">{primaryMarket.market}</h3>
                                                 </div>
                                                 <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                                     <MapPin className="text-gray-400" size={20} />
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Location</p>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{t('market.location')}</p>
                                                         <p className="text-sm font-bold text-gray-700">{primaryMarket.district}, {primaryMarket.state}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                                     <Calendar className="text-gray-400" size={20} />
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Last Update</p>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{t('market.last_update')}</p>
                                                         <p className="text-sm font-bold text-gray-700">{new Date(primaryMarket.date).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
@@ -378,25 +380,25 @@ export default function MarketPage() {
                                             <div className="flex-1 w-full bg-[#f8fafb] rounded-[32px] p-8 border border-gray-100 relative overflow-hidden group">
                                                 <div className="absolute top-4 right-8 flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full bg-[#00ab55] animate-pulse" />
-                                                    <span className="text-[10px] font-black text-[#00ab55] uppercase tracking-widest">LIVE DATA</span>
+                                                    <span className="text-[10px] font-black text-[#00ab55] uppercase tracking-widest">{t('market.live_data')}</span>
                                                 </div>
 
-                                                <h4 className="text-lg font-bold text-[#0a2635] mb-8">Quick Suggestions</h4>
+                                                <h4 className="text-lg font-bold text-[#0a2635] mb-8">{t('market.quick_suggestions')}</h4>
 
                                                 <div className="space-y-4">
                                                     <SuggestionItem
                                                         text={primaryMarket.trend === 'up' || primaryMarket.actual_trend === 'up'
-                                                            ? `Prices for ${selectedCrop} are trending upwards. Good time for liquidation.`
-                                                            : `Stability observed in ${selectedCrop} prices. Monitor for next 48 hours.`
+                                                            ? t('market.trend_up', {crop: selectedCrop})
+                                                            : t('market.trend_stable', {crop: selectedCrop})
                                                         }
                                                     />
                                                     <SuggestionItem
-                                                        text={`The price gap between min/max is ${primaryMarket.max_price - primaryMarket.min_price} ₹. Grade quality is key.`}
+                                                        text={t('market.price_gap', {gap: primaryMarket.max_price - primaryMarket.min_price})}
                                                     />
                                                 </div>
 
                                                 <button className="mt-8 w-full py-4 bg-white text-[#0a2635] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0a2635] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:shadow-md">
-                                                    DOWNLOAD FULL MARKET REPORT <ArrowUpRight size={14} />
+                                                    {t('market.download_report')} <ArrowUpRight size={14} />
                                                 </button>
                                             </div>
                                         </div>
@@ -404,7 +406,7 @@ export default function MarketPage() {
                                         {/* Nearby Markets Side Panel */}
                                         {marketData.length > 1 && (
                                             <div className="w-full lg:w-80 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl shadow-gray-200/50">
-                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">Nearby Markets</h4>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">{t('market.nearby_markets')}</h4>
                                                 <div className="space-y-4">
                                                     {marketData.filter(m => !m.is_primary).map((m, i) => (
                                                         <div key={i} className="p-4 rounded-[24px] bg-gray-50 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-100 group">

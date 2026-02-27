@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MessageSquare, Loader2, ChevronRight, Mic, MicOff } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
@@ -27,6 +28,7 @@ export default function AssistantPage({
 }: AssistantPageProps) {
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<any>(null);
+    const { t, i18n } = useTranslation();
 
     const toggleListening = () => {
         if (isListening) {
@@ -38,7 +40,15 @@ export default function AssistantPage({
                 const recognition = new SpeechRecognition();
                 recognition.continuous = true;
                 recognition.interimResults = true;
-                recognition.lang = 'en-IN';
+                    // Set recognition language based on UI selection
+                    const lang = (i18n.language || 'en');
+                    const localeMap: Record<string, string> = {
+                        en: 'en-IN',
+                        te: 'te-IN',
+                        hi: 'hi-IN',
+                        ta: 'ta-IN'
+                    };
+                    recognition.lang = localeMap[lang] || 'en-IN';
 
                 let finalTranscript = '';
 
@@ -88,13 +98,13 @@ export default function AssistantPage({
                                 <div className="w-20 h-20 bg-[#00ab55]/10 rounded-3xl flex items-center justify-center mb-6">
                                     <MessageSquare className="text-[#00ab55]" size={32} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-2">How can I help you today?</h3>
-                                <p className="text-gray-400 max-w-sm font-medium italic mb-10">Ask me anything about soil health, pest control, or irrigation.</p>
+                                                <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('assistant.welcome_title')}</h3>
+                                                <p className="text-gray-400 max-w-sm font-medium italic mb-10">{t('assistant.welcome_desc')}</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-md">
-                                    <QuickQuery text="Best time to plant Paddy?" onClick={() => onUserInputChange("Best time to plant Paddy in Andhra Pradesh?")} />
-                                    <QuickQuery text="Organic nitrogen sources?" onClick={() => onUserInputChange("How to improve soil nitrogen naturally?")} />
-                                    <QuickQuery text="Tomato blight management?" onClick={() => onUserInputChange("Early signs of tomato blight and organic control?")} />
-                                    <QuickQuery text="Weather impact on harvest?" onClick={() => onUserInputChange("How does high humidity affect harvest quality?")} />
+                                                    <QuickQuery text={t('assistant.quick_queries.q1')} onClick={() => onUserInputChange(t('assistant.quick_queries.q1'))} />
+                                                    <QuickQuery text={t('assistant.quick_queries.q2')} onClick={() => onUserInputChange(t('assistant.quick_queries.q2'))} />
+                                                    <QuickQuery text={t('assistant.quick_queries.q3')} onClick={() => onUserInputChange(t('assistant.quick_queries.q3'))} />
+                                                    <QuickQuery text={t('assistant.quick_queries.q4')} onClick={() => onUserInputChange(t('assistant.quick_queries.q4'))} />
                                 </div>
                             </div>
                         )}
@@ -110,7 +120,7 @@ export default function AssistantPage({
                                     {msg.role === 'ai' ? <Markdown>{msg.content}</Markdown> : msg.content}
                                 </div>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-                                    {msg.role === 'user' ? 'Farmer' : 'AgriSmart AI'}
+                                    {msg.role === 'user' ? t('assistant.user_label') : t('assistant.ai_label')}
                                 </span>
                             </div>
                         ))}
@@ -118,7 +128,7 @@ export default function AssistantPage({
                         {isTyping && (
                             <div className="flex items-center gap-3 text-[#00ab55]/60">
                                 <Loader2 size={20} className="animate-spin" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Assistant is thinking...</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">{t('assistant.loading')}</span>
                             </div>
                         )}
                         <div ref={chatEndRef} />
@@ -143,7 +153,7 @@ export default function AssistantPage({
                                 type="text"
                                 value={userInput}
                                 onChange={(e) => onUserInputChange(e.target.value)}
-                                placeholder="Type your query here..."
+                                placeholder={t('assistant.input_placeholder')}
                                 className="flex-1 bg-white border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-[#00ab55]/10 transition-all font-medium text-sm"
                             />
                             <button

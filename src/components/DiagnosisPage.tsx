@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Camera, X, Upload, Loader2, Leaf, Clock, ChevronRight, Stethoscope, Trash2, History, FileText } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
@@ -33,6 +34,7 @@ function generateCaseId(): string {
 type ViewMode = 'REPORT' | 'HISTORY';
 
 export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputRef, isAnalyzing, diagnosisResult, onReset, isLoggedIn }: DiagnosisPageProps) {
+    const { t } = useTranslation();
     const [history, setHistory] = useState<DiagnosisRecord[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [caseId] = useState(() => generateCaseId());
@@ -137,8 +139,8 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                                 <Stethoscope className="text-[#00ab55]" size={24} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-gray-900 leading-none">CROP DOCTOR</h2>
-                                <p className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">AI Diagnostics</p>
+                                <h2 className="text-2xl font-black text-gray-900 leading-none">{t('diagnosis.title')}</h2>
+                                <p className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">{t('diagnosis.subtitle')}</p>
                             </div>
                         </div>
                     </header>
@@ -153,8 +155,8 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                                     <Upload className="text-[#00ab55]" size={24} />
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-sm font-bold text-gray-900">Scan Crop</p>
-                                    <p className="text-[10px] text-gray-400 mt-1">Tap to select sample</p>
+                                    <p className="text-sm font-bold text-gray-900">{t('diagnosis.scan_crop')}</p>
+                                    <p className="text-[10px] text-gray-400 mt-1">{t('diagnosis.tap_to_select')}</p>
                                 </div>
                             </div>
                         ) : (
@@ -174,25 +176,25 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                                     onClick={() => fileInputRef.current?.click()}
                                     className="w-full py-3.5 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
                                 >
-                                    RESCAN SAMPLE
+                                    {t('diagnosis.rescan')}
                                 </button>
                             </div>
                         )}
 
                         <div className="pt-4 border-t border-gray-50">
-                            <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-4">Diagnostics Console</p>
+                            <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-4">{t('diagnosis.diagnostics_console')}</p>
                             {isAnalyzing ? (
                                 <div className="flex items-center gap-3 text-[#00ab55]">
                                     <Loader2 className="animate-spin" size={16} />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest animate-pulse">Analyzing...</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest animate-pulse">{t('diagnosis.analyzing')}</span>
                                 </div>
                             ) : diagnosisResult ? (
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-gray-500">Scan Complete</span>
-                                    {saved && <span className="text-[9px] font-black text-[#00ab55] bg-[#00ab55]/10 px-2 py-0.5 rounded-full">✓ SAVED</span>}
+                                    <span className="text-[10px] font-bold text-gray-500">{t('diagnosis.scan_complete')}</span>
+                                    {saved && <span className="text-[9px] font-black text-[#00ab55] bg-[#00ab55]/10 px-2 py-0.5 rounded-full">{t('diagnosis.saved')}</span>}
                                 </div>
                             ) : (
-                                <span className="text-[10px] font-bold text-gray-400 italic">Waiting for input...</span>
+                                <span className="text-[10px] font-bold text-gray-400 italic">{t('diagnosis.waiting')}</span>
                             )}
                         </div>
                     </div>
@@ -213,7 +215,7 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                             >
                                 <div className="flex items-center gap-2">
                                     <FileText size={16} />
-                                    Diagnosis Report
+                                    {t('diagnosis.diagnosis_report')}
                                 </div>
                                 {viewMode === 'REPORT' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-1 bg-[#00ab55] rounded-t-full" />}
                             </button>
@@ -224,7 +226,7 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                             >
                                 <div className="flex items-center gap-2">
                                     <History size={16} />
-                                    History Records
+                                    {t('diagnosis.history_records')}
                                 </div>
                                 {viewMode === 'HISTORY' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-1 bg-[#00ab55] rounded-t-full" />}
                             </button>
@@ -290,7 +292,7 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                                                 onClick={() => setViewMode('HISTORY')}
                                                 className="mt-10 px-8 py-3.5 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
                                             >
-                                                Browse History
+                                                {t('diagnosis.history_records')}
                                             </button>
                                         </div>
                                     )}
@@ -319,7 +321,7 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                                             <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mb-6">
                                                 <Clock size={32} className="text-gray-200" />
                                             </div>
-                                            <h4 className="text-xl font-bold text-gray-400">History Empty</h4>
+                                            <h4 className="text-xl font-bold text-gray-400">{t('diagnosis.no_history')}</h4>
                                             <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto italic">Your successfully analyzed crops will appear here.</p>
                                         </div>
                                     ) : (

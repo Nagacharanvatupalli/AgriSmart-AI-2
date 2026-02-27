@@ -235,6 +235,7 @@ function WeatherCard({ label, value, icon, description, highlighted }: any) {
 
 export default function App() {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -476,7 +477,7 @@ export default function App() {
 
       try {
         // Direct expert diagnosis using Perplexity Vision
-        const result = await detectCropDisease(base64.split(',')[1], file.type);
+        const result = await detectCropDisease(base64.split(',')[1], file.type, i18n.language || 'en');
         setDiagnosisResult(result || "Could not generate diagnosis.");
       } catch (error) {
         console.error("Diagnosis flow error:", error);
@@ -497,7 +498,7 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const response = await getPerplexityAdvice(userMsg);
+      const response = await getPerplexityAdvice(userMsg, i18n.language || 'en');
       setChatMessages(prev => [...prev, { role: 'ai', content: response || "I'm sorry, I couldn't process that." }]);
     } catch (error) {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Error communicating with AI assistant." }]);

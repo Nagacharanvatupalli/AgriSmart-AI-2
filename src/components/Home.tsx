@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Sprout, Target, Lightbulb, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col w-full">
@@ -25,10 +27,19 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-3xl md:text-5xl lg:text-7xl font-comfortaa text-white mb-8 leading-[1] font-bold"
+            className="text-3xl md:text-5xl lg:text-7xl font-comfortaa text-white mb-4 leading-[1] font-bold"
           >
-            "The discovery of agriculture was the first big step toward a civilized life."
+            {t('home.hero_quote')}
           </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="text-white/70 text-lg md:text-xl mb-10 font-medium max-w-2xl"
+          >
+            {t('home.hero_sub')}
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0 }}
@@ -40,13 +51,13 @@ export default function Home() {
               onClick={() => navigate('/crops')}
               className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-xl text-lg font-bold hover:bg-white/20 transition-all transform hover:scale-105"
             >
-              Crops
+              {t('home.crops_btn')}
             </button>
             <button
               onClick={() => navigate('/dashboard')}
               className="bg-primary text-white px-12 py-4 rounded-xl text-lg font-bold hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center gap-2 shadow-xl shadow-primary/20"
             >
-              Get Started
+              {t('home.get_started')}
               <ChevronRight size={20} />
             </button>
           </motion.div>
@@ -61,19 +72,19 @@ export default function Home() {
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
                   <Sprout size={28} />
                 </div>
-                <h2 className="text-4xl font-bold text-gray-900 tracking-tight">Project Information</h2>
+                <h2 className="text-4xl font-bold text-gray-900 tracking-tight">{t('home.info_title')}</h2>
               </div>
               <p className="text-gray-600 leading-relaxed text-xl font-light">
-                AgriSmartAI is a cutting-edge platform designed to empower farmers with the latest advancements in Artificial Intelligence and Machine Learning. Our system provides real-time insights, precise crop diagnosis, and personalized agricultural advice to optimize yields and promote sustainable farming practices globally.
+                {t('home.info_desc')}
               </p>
               <div className="grid grid-cols-2 gap-6 pt-6">
                 <div className="p-6 border border-gray-100 rounded-3xl bg-gray-50/50">
-                  <h4 className="font-bold text-gray-900 text-lg mb-1">AI Diagnosis</h4>
-                  <p className="text-sm text-gray-500">Instant disease detection using computer vision</p>
+                  <h4 className="font-bold text-gray-900 text-lg mb-1">{t('home.ai_diagnosis')}</h4>
+                  <p className="text-sm text-gray-500">{t('home.ai_diagnosis_desc')}</p>
                 </div>
                 <div className="p-6 border border-gray-100 rounded-3xl bg-gray-50/50">
-                  <h4 className="font-bold text-gray-900 text-lg mb-1">Market Data</h4>
-                  <p className="text-sm text-gray-500">Real-time global commodity price tracking</p>
+                  <h4 className="font-bold text-gray-900 text-lg mb-1">{t('home.market_data')}</h4>
+                  <p className="text-sm text-gray-500">{t('home.market_data_desc')}</p>
                 </div>
               </div>
             </div>
@@ -83,15 +94,15 @@ export default function Home() {
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
                   <Target size={28} />
                 </div>
-                <h2 className="text-4xl font-bold text-gray-900 tracking-tight">Our Motivation</h2>
+                <h2 className="text-4xl font-bold text-gray-900 tracking-tight">{t('home.motivation_title')}</h2>
               </div>
               <p className="text-gray-600 leading-relaxed text-xl font-light">
-                The motivation behind AgriSmartAI stems from the urgent need to address global food security challenges. By bridging the gap between traditional farming wisdom and modern technology, we aim to reduce crop loss, minimize chemical usage, and increase the economic stability of farming communities worldwide.
+                {t('home.motivation_desc')}
               </p>
               <div className="flex items-start gap-6 p-8 bg-primary/5 rounded-[40px] border border-primary/10">
                 <Lightbulb className="text-primary shrink-0 mt-1" size={32} />
                 <p className="text-base text-gray-800 font-comfortaa font-bold leading-snug">
-                  "Empowering the hands that feed the world through intelligent, accessible technology."
+                  {t('home.motivation_quote')}
                 </p>
               </div>
             </div>
@@ -108,24 +119,24 @@ export default function Home() {
                 <span className="text-3xl font-bold tracking-tight">AgriSmartAI</span>
               </div>
               <p className="mt-6 text-gray-500 max-w-md text-lg font-light leading-relaxed">
-                Revolutionizing agriculture through smart technology and data-driven insights. We believe in a future where every farmer has an expert in their pocket.
+                {t('home.footer_tagline')}
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-6 text-lg">Quick Links</h4>
+              <h4 className="font-bold mb-6 text-lg">{t('home.quick_links')}</h4>
               <ul className="space-y-4 text-gray-500">
-                <li><button className="hover:text-primary transition-colors">About Us</button></li>
-                <li><button className="hover:text-primary transition-colors">Services</button></li>
-                <li><button className="hover:text-primary transition-colors">Privacy Policy</button></li>
-                <li><button className="hover:text-primary transition-colors">Contact</button></li>
+                <li><button className="hover:text-primary transition-colors">{t('home.about_us')}</button></li>
+                <li><button className="hover:text-primary transition-colors">{t('home.services')}</button></li>
+                <li><button className="hover:text-primary transition-colors">{t('home.privacy_policy')}</button></li>
+                <li><button className="hover:text-primary transition-colors">{t('home.contact_link')}</button></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-6 text-lg">Contact</h4>
+              <h4 className="font-bold mb-6 text-lg">{t('home.contact')}</h4>
               <ul className="space-y-4 text-gray-500">
                 <li>nagacharanvatupalli@gmail.com</li>
                 <li>+91 78934 39082</li>
-                <li>SRKR Engineering College,Bhimavaram</li>
+                <li>SRKR Engineering College, Bhimavaram</li>
               </ul>
             </div>
           </div>

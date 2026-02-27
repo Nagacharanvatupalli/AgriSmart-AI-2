@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUpRight, Search, X, Copy, Check } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -9,6 +10,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface Crop {
+    id: string;
     name: string;
     season: string;
     description: string;
@@ -19,6 +21,7 @@ interface Crop {
 
 const crops: Crop[] = [
     {
+        id: 'paddy',
         name: 'Paddy',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -27,6 +30,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Paddy:\n1. Soil: Requires clayey or loamy soil that can retain water.\n2. Sowing: Typically from June to July (Kharif).\n3. Water: Flooding of fields is necessary during growth.\n4. Harvest: Usually between November and December."
     },
     {
+        id: 'wheat',
         name: 'Wheat',
         season: 'RABI',
         seasonType: 'RABI',
@@ -35,6 +39,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Wheat:\n1. Climate: Requires cool weather during growth and sunny weather for ripening.\n2. Sowing: October to December.\n3. Soil: Well-drained loamy to clayey soils are ideal.\n4. Fertilizer: Balanced NPK application is critical."
     },
     {
+        id: 'cotton',
         name: 'Cotton',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -43,6 +48,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Cotton:\n1. Soil: Black cotton soil (Regur) is best for moisture retention.\n2. Spacing: Maintain 60-90cm between rows.\n3. Pest Control: Monitor closely for Bollworm.\n4. Picking: Hand picking is done after bolls burst open."
     },
     {
+        id: 'chilli',
         name: 'Chilli',
         season: 'RABI/KHARIF',
         seasonType: 'RABI/KHARIF',
@@ -51,6 +57,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Chilli:\n1. Nursery: Raise seedlings for 30-45 days before transplanting.\n2. Soil: Well-drained loamy soil with high organic matter.\n3. Irrigation: Frequent but light irrigation during flowering.\n4. Harvest: Green chillies can be picked after fully grown."
     },
     {
+        id: 'turmeric',
         name: 'Turmeric',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -59,6 +66,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Turmeric:\n1. Soil: Well-drained sandy or clayey loam.\n2. Planting: Raise on ridges by burying rhizomes.\n3. Duration: 7-9 months crop cycle.\n4. Processing: Boil, dry, and polish for marketing."
     },
     {
+        id: 'maize',
         name: 'Corn (Maize)',
         season: 'KHARIF/RABI',
         seasonType: 'KHARIF/RABI',
@@ -67,6 +75,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Corn:\n1. Climate: Needs warm temperatures and good sunlight.\n2. Soil: Fertile alluvial soil is best.\n3. Weeding: Keep field clean during the first 30 days.\n4. Storage: Dry well to prevent fungal growth."
     },
     {
+        id: 'tomato',
         name: 'Tomato',
         season: 'RABI',
         seasonType: 'RABI',
@@ -75,6 +84,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Tomato:\n1. Support: Use staking for indeterminate varieties.\n2. Watering: Avoid overhead watering to reduce disease risk.\n3. Mulching: Helps in moisture retention and weed control.\n4. Pruning: Remove suckers to improve fruit size."
     },
     {
+        id: 'sugarcane',
         name: 'Sugarcane',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -83,6 +93,7 @@ const crops: Crop[] = [
         guidelines: "Cultivation Guidelines for Sugarcane:\n1. Propagation: Done via stem cuttings called 'sets'.\n2. Soil: Deep well-drained clayey loams.\n3. Earthing up: Prevents lodging during high winds.\n4. Harvest: Cut close to the ground when sugar content peaks."
     },
     {
+        id: 'groundnut',
         name: 'Groundnut',
         season: 'KHARIF/RABI',
         seasonType: 'KHARIF/RABI',
@@ -91,6 +102,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Sow in June/July. Requires light sandy-loam soil. Dig out pods when leaves turn yellow."
     },
     {
+        id: 'mustard',
         name: 'Mustard',
         season: 'RABI',
         seasonType: 'RABI',
@@ -99,6 +111,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Sown in Oct-Nov. Cool climate preferred. Harvest when siliquae turn golden."
     },
     {
+        id: 'onion',
         name: 'Onion',
         season: 'RABI/KHARIF',
         seasonType: 'RABI/KHARIF',
@@ -107,6 +120,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Transplant 6-8 week old seedlings. Needs well-pulverized soil. Stop irrigation 15 days before harvest."
     },
     {
+        id: 'potato',
         name: 'Potato',
         season: 'RABI',
         seasonType: 'RABI',
@@ -115,6 +129,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Use certified disease-free seed tubers. Earthing up is essential for tuber development."
     },
     {
+        id: 'guava',
         name: 'Guava',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -123,6 +138,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Prune annually to maintain tree shape. Drought tolerant once established."
     },
     {
+        id: 'mango',
         name: 'Mango',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -131,6 +147,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Grafted varieties are preferred. Regular irrigation is vital during fruit development."
     },
     {
+        id: 'banana',
         name: 'Banana',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -139,6 +156,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: High fertilizer and water requirement. Desuckering is necessary for better yields."
     },
     {
+        id: 'grapes',
         name: 'Grapes',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -147,6 +165,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Requires trellis system for support. Pruning is specialized (Oct and Dec-Jan)."
     },
     {
+        id: 'ginger',
         name: 'Ginger',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -155,6 +174,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Thrives in partial shade. Needs organic-rich, well-drained soil."
     },
     {
+        id: 'garlic',
         name: 'Garlic',
         season: 'RABI',
         seasonType: 'RABI',
@@ -163,6 +183,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Plant individual cloves. Cold temperatures promote bulb formation."
     },
     {
+        id: 'soybean',
         name: 'Soybean',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -171,6 +192,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Highly susceptible to weeds. Use pre-emergence herbicides."
     },
     {
+        id: 'chickpea',
         name: 'Chickpea (Chana)',
         season: 'RABI',
         seasonType: 'RABI',
@@ -179,6 +201,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Grow on residual moisture. Sensitive to frost and drought at flowering."
     },
     {
+        id: 'black_gram',
         name: 'Black Gram (Urad)',
         season: 'KHARIF/RABI',
         seasonType: 'KHARIF/RABI',
@@ -187,6 +210,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Short duration crop (60-90 days). Fits well in many rotations."
     },
     {
+        id: 'green_gram',
         name: 'Green Gram (Moong)',
         season: 'KHARIF/RABI',
         seasonType: 'KHARIF/RABI',
@@ -195,6 +219,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Can be grown as catch crop. Resistant to yellow mosaic virus is preferred."
     },
     {
+        id: 'pigeon_pea',
         name: 'Pigeon Pea (Arhar)',
         season: 'KHARIF',
         seasonType: 'KHARIF',
@@ -203,6 +228,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Deep root system. Intercrop with sorghum or maize for best results."
     },
     {
+        id: 'lentil',
         name: 'Lentil (Masoor)',
         season: 'RABI',
         seasonType: 'RABI',
@@ -211,6 +237,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Sown in late Oct. Requires cool climate and clear skies during maturity."
     },
     {
+        id: 'cabbage',
         name: 'Cabbage',
         season: 'RABI',
         seasonType: 'RABI',
@@ -219,6 +246,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: High nitrogen feed is necessary. Control aphids early."
     },
     {
+        id: 'cauliflower',
         name: 'Cauliflower',
         season: 'RABI',
         seasonType: 'RABI',
@@ -227,6 +255,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Blanching (covering curd) is needed for white color. Sensitive to boron deficiency."
     },
     {
+        id: 'carrot',
         name: 'Carrot',
         season: 'RABI',
         seasonType: 'RABI',
@@ -235,6 +264,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Needs loose stone-free soil for straight roots. Thinning of seedlings is essential."
     },
     {
+        id: 'brinjal',
         name: 'Brinjal (Eggplant)',
         season: 'KHARIF/RABI',
         seasonType: 'KHARIF/RABI',
@@ -243,6 +273,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Needs well-drained loamy soil. Fruit borer is a major pest."
     },
     {
+        id: 'papaya',
         name: 'Papaya',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -251,6 +282,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Avoid waterlogging as it causes root rot. Sensitive to frost."
     },
     {
+        id: 'pomegranate',
         name: 'Pomegranate',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -259,6 +291,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Bahar treatment is given for flowering. Requires dry summer for fruit quality."
     },
     {
+        id: 'coffee',
         name: 'Coffee',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -267,6 +300,7 @@ const crops: Crop[] = [
         guidelines: "Guidelines: Grows under shade trees. Requires alternate rain and sunshine (Oct-Nov blossoms)."
     },
     {
+        id: 'tea',
         name: 'Tea',
         season: 'PERENNIAL',
         seasonType: 'PERENNIAL',
@@ -277,16 +311,19 @@ const crops: Crop[] = [
 ];
 
 export default function CropsPage() {
+    const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
     const [copied, setCopied] = useState(false);
 
     const filteredCrops = useMemo(() => {
-        return crops.filter(crop =>
-            crop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            crop.season.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm]);
+        return crops.filter(crop => {
+            const translatedName = t(`crops_page.data.${crop.id}.name`, { defaultValue: crop.name });
+            const translatedSeason = t(`crops_page.data.${crop.id}.season`, { defaultValue: crop.season });
+            return translatedName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                translatedSeason.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+    }, [searchTerm, t]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -298,15 +335,15 @@ export default function CropsPage() {
         <div className="pt-24 pb-12 px-6 lg:px-10 max-w-[1600px] mx-auto min-h-screen bg-gray-50/50">
             <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
                 <div>
-                    <h1 className="text-[40px] font-bold text-gray-900 leading-tight">Crop Repository</h1>
-                    <p className="text-gray-500 mt-2 text-lg">Expert guidance for {crops.length}+ high-yield cultivation of popular Indian crops.</p>
+                    <h1 className="text-[40px] font-bold text-gray-900 leading-tight">{t('crops_page.title')}</h1>
+                    <p className="text-gray-500 mt-2 text-lg">{t('crops_page.subtitle', { count: crops.length })}</p>
                 </div>
 
                 <div className="relative w-full md:max-w-md">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Search by crop name or season..."
+                        placeholder={t('crops_page.search')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[30px] shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium"
@@ -318,7 +355,7 @@ export default function CropsPage() {
                 {filteredCrops.length > 0 ? (
                     filteredCrops.map((crop, idx) => (
                         <motion.div
-                            key={crop.name}
+                            key={crop.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
@@ -327,7 +364,7 @@ export default function CropsPage() {
                             <div className="relative h-64 overflow-hidden">
                                 <img
                                     src={crop.image}
-                                    alt={crop.name}
+                                    alt={t(`crops_page.data.${crop.id}.name`, { defaultValue: crop.name })}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     loading="lazy"
                                 />
@@ -339,22 +376,22 @@ export default function CropsPage() {
                                                 crop.seasonType === 'PERENNIAL' ? "bg-purple-500" :
                                                     "bg-green-600"
                                     )}>
-                                        {crop.season}
+                                        {t(`crops_page.data.${crop.id}.season`, { defaultValue: crop.season })}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="p-8">
-                                <h3 className="text-2xl font-bold text-gray-900 mb-4">{crop.name}</h3>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-4">{t(`crops_page.data.${crop.id}.name`, { defaultValue: crop.name })}</h3>
                                 <p className="text-gray-400 text-sm leading-relaxed min-h-[48px] line-clamp-2">
-                                    {crop.description}
+                                    {t(`crops_page.data.${crop.id}.desc`, { defaultValue: crop.description })}
                                 </p>
 
                                 <button
                                     onClick={() => setSelectedCrop(crop)}
                                     className="mt-8 flex items-center gap-2 text-[#00ab55] font-black text-[10px] uppercase tracking-widest group/btn"
                                 >
-                                    VIEW GUIDELINES
+                                    {t('crops_page.view_details')}
                                     <ArrowUpRight size={14} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                                 </button>
                             </div>
@@ -385,7 +422,7 @@ export default function CropsPage() {
                             className="relative w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden"
                         >
                             <div className="h-64 relative">
-                                <img src={selectedCrop.image} alt={selectedCrop.name} className="w-full h-full object-cover" />
+                                <img src={selectedCrop.image} alt={t(`crops_page.data.${selectedCrop.id}.name`, { defaultValue: selectedCrop.name })} className="w-full h-full object-cover" />
                                 <button
                                     onClick={() => setSelectedCrop(null)}
                                     className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-full flex items-center justify-center transition-all"
@@ -393,25 +430,29 @@ export default function CropsPage() {
                                     <X size={20} />
                                 </button>
                                 <div className="absolute bottom-6 left-10">
-                                    <h2 className="text-4xl font-bold text-white drop-shadow-lg">{selectedCrop.name}</h2>
-                                    <span className="text-white/80 font-bold uppercase tracking-widest text-xs">{selectedCrop.season} SEASON</span>
+                                    <h2 className="text-4xl font-bold text-white drop-shadow-lg">{t(`crops_page.data.${selectedCrop.id}.name`, { defaultValue: selectedCrop.name })}</h2>
+                                    <span className="text-white/80 font-bold uppercase tracking-widest text-xs">
+                                        {t(`crops_page.data.${selectedCrop.id}.season`, { defaultValue: selectedCrop.season })} SEASON
+                                    </span>
                                 </div>
                             </div>
 
                             <div className="p-10">
                                 <div className="flex items-center justify-between mb-8">
-                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Cultivation Guidelines</h4>
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                                        {t('crops_page.view_details')}
+                                    </h4>
                                     <button
-                                        onClick={() => handleCopy(selectedCrop.guidelines)}
+                                        onClick={() => handleCopy(t(`crops_page.data.${selectedCrop.id}.guidelines`, { defaultValue: selectedCrop.guidelines }))}
                                         className="flex items-center gap-2 px-6 py-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-600 font-bold text-xs uppercase tracking-widest transition-all"
                                     >
                                         {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-                                        {copied ? 'COPIED!' : 'COPY GUIDELINES'}
+                                        {copied ? t('crops_page.copied') : t('crops_page.copy_guidelines')}
                                     </button>
                                 </div>
 
                                 <div className="bg-slate-50 border border-slate-100 p-8 rounded-[30px] whitespace-pre-wrap text-gray-600 leading-relaxed font-medium">
-                                    {selectedCrop.guidelines}
+                                    {t(`crops_page.data.${selectedCrop.id}.guidelines`, { defaultValue: selectedCrop.guidelines })}
                                 </div>
 
                                 <button

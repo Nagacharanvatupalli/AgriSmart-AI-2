@@ -21,9 +21,27 @@ export const getVisualSymptoms = async (base64Image: string, mimeType: string) =
   return response.text;
 };
 
-export const getAgriculturalAdvice = async (query: string, context?: string) => {
+// simple cache to reduce duplicate calls
+const adviceCache = new Map<string, { text: string; ts: number }>();
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
+const LANG_NAME: Record<string, string> = {
+  en: 'English',
+  te: 'Telugu',
+  hi: 'Hindi',
+  ta: 'Tamil'
+};
+
+export const getAgriculturalAdvice = async (query: string, context?: string, language = 'en') => {
   const model = "gemini-2.0-flash";
-  const systemInstruction = "You are an expert agricultural consultant. Provide practical, sustainable, and scientifically-backed advice to farmers. Focus on crop management, soil health, irrigation, and pest control. Keep responses concise and actionable.";
+  const languageName = LANG_NAME[language] || 'English';
+  const systemInstruction = `You are an expert agricultural consultant. Provide practical, sustainable, and scientifically-backed advice to farmers. Focus on crop management, soil health, irrigation, and pest control. Keep responses concise and actionable. Respond in ${languageName}.`;
+
+  const cacheKey = `${language}::${query}`;
+  const cached = adviceCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < CACHE_TTL) {
+    return cached.text;
+  }
 
   const response = await ai.models.generateContent({
     model,
@@ -33,6 +51,8 @@ export const getAgriculturalAdvice = async (query: string, context?: string) => 
     },
   });
 
+  // cache and return
+  adviceCache.set(cacheKey, { text: response.text, ts: Date.now() });
   return response.text;
 };
 
