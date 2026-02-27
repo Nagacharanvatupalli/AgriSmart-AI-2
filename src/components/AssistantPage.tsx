@@ -1,5 +1,5 @@
-import React from 'react';
-import { MessageSquare, Loader2, ChevronRight } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { MessageSquare, Loader2, ChevronRight, Mic, MicOff } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -25,6 +25,54 @@ export default function AssistantPage({
     isTyping,
     chatEndRef
 }: AssistantPageProps) {
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef<any>(null);
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+        } else {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-IN';
+
+                let finalTranscript = '';
+
+                recognition.onresult = (event: any) => {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    onUserInputChange(finalTranscript + interimTranscript);
+                };
+
+                recognition.onerror = (event: any) => {
+                    console.error('Speech recognition error', event.error);
+                    setIsListening(false);
+                };
+
+                recognition.onend = () => {
+                    setIsListening(false);
+                };
+
+                recognitionRef.current = recognition;
+                onUserInputChange('');
+                recognition.start();
+                setIsListening(true);
+            } else {
+                alert("Voice input is not supported in this browser.");
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen pt-24 pb-12 px-6 lg:px-12 bg-gray-50/50 flex flex-col">
             <div className="max-w-[1000px] mx-auto w-full flex-1 flex flex-col">
@@ -78,6 +126,19 @@ export default function AssistantPage({
 
                     <div className="p-6 bg-gray-50 border-t border-gray-100">
                         <form onSubmit={(e) => { e.preventDefault(); onSendMessage(); }} className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={toggleListening}
+                                className={cn(
+                                    "p-4 rounded-2xl transition-all shadow-xl flex items-center justify-center shrink-0",
+                                    isListening
+                                        ? "bg-red-500 text-white shadow-red-500/20 animate-pulse"
+                                        : "bg-white text-gray-500 border border-gray-200 hover:border-[#00ab55]/30 hover:text-[#00ab55]"
+                                )}
+                                title={isListening ? "Stop listening" : "Start voice input"}
+                            >
+                                {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+                            </button>
                             <input
                                 type="text"
                                 value={userInput}
