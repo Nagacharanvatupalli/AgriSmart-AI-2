@@ -11,6 +11,8 @@ import {
   Upload,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  Search,
   CheckCircle2,
   ArrowRight,
   X
@@ -29,6 +31,93 @@ interface StateData {
 }
 
 const LOCATION_DATA = indiaLocations as StateData[];
+
+const SearchableSelect = ({
+  label,
+  value,
+  onChange,
+  options,
+  disabled = false,
+  placeholder = "Select..."
+}: {
+  label: string,
+  value: string,
+  onChange: (val: string) => void,
+  options: string[],
+  disabled?: boolean,
+  placeholder?: string
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt => opt.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="space-y-2 relative" ref={dropdownRef}>
+      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">{label}</label>
+      <div
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium flex justify-between items-center transition-all cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:ring-2 hover:ring-primary/50'}`}
+      >
+        <span className={value ? "text-gray-800" : "text-gray-400"}>{value || placeholder}</span>
+        <ChevronDown size={20} className="text-black" />
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+          >
+            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+              <Search size={16} className="text-gray-400 ml-2" />
+              <input
+                type="text"
+                autoFocus
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="w-full py-2 px-2 text-sm text-gray-800 focus:outline-none bg-transparent"
+              />
+            </div>
+            <div className="max-h-60 overflow-y-auto [&::-webkit-scrollbar]:hidden">
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((opt) => (
+                  <div
+                    key={opt}
+                    onClick={() => {
+                      onChange(opt);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`py-3 px-4 text-gray-800 cursor-pointer hover:bg-primary/10 transition-colors ${value === opt ? 'bg-primary/5 font-bold' : ''}`}
+                  >
+                    {opt}
+                  </div>
+                ))
+              ) : (
+                <div className="py-3 px-4 text-gray-400 text-sm text-center">No results found</div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: string, user?: any) => void }) {
   const navigate = useNavigate();
@@ -387,63 +476,40 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
 
               {phase === 3 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">State</label>
-                      <select
-                        name="state"
-                        value={formData.state}
-                        onChange={(e) => {
-                          handleInputChange(e);
-                          // Reset district and mandal when state changes
-                          setFormData(prev => ({ ...prev, state: e.target.value, district: '', mandal: '' }));
-                        }}
-                        className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
-                      >
-                        <option value="" className="text-gray-800 bg-white">Select State</option>
-                        {LOCATION_DATA.map(stateObj => (
-                          <option key={stateObj.name} value={stateObj.name} className="text-gray-800 bg-white">{stateObj.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">District</label>
-                      <select
-                        name="district"
-                        value={formData.district}
-                        onChange={(e) => {
-                          handleInputChange(e);
-                          // Reset mandal when district changes
-                          setFormData(prev => ({ ...prev, district: e.target.value, mandal: '' }));
-                        }}
-                        disabled={!formData.state}
-                        className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none disabled:opacity-50"
-                      >
-                        <option value="" className="text-gray-800 bg-white">Select District</option>
-                        {formData.state && LOCATION_DATA.find(s => s.name === formData.state)?.districtList.map(districtObj => (
-                          <option key={districtObj.name} value={districtObj.name} className="text-gray-800 bg-white">{districtObj.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Mandal</label>
-                      <select
-                        name="mandal"
-                        value={formData.mandal}
-                        onChange={handleInputChange}
-                        disabled={!formData.district}
-                        className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none disabled:opacity-50"
-                      >
-                        <option value="" className="text-gray-800 bg-white">Select Mandal</option>
-                        {formData.state && formData.district &&
-                          LOCATION_DATA.find(s => s.name === formData.state)
-                            ?.districtList.find(d => d.name === formData.district)
-                            ?.blockList.map((mandal: string) => (
-                              <option key={mandal} value={mandal} className="text-gray-800 bg-white">{mandal}</option>
-                            ))
-                        }
-                      </select>
-                    </div>
+                  <div className="space-y-4">
+                    <SearchableSelect
+                      label="State"
+                      value={formData.state}
+                      onChange={(val) => {
+                        setFormData(prev => ({ ...prev, state: val, district: '', mandal: '' }));
+                      }}
+                      options={LOCATION_DATA.map(s => s.name)}
+                      placeholder="Select State"
+                    />
+                    <SearchableSelect
+                      label="District"
+                      value={formData.district}
+                      onChange={(val) => {
+                        setFormData(prev => ({ ...prev, district: val, mandal: '' }));
+                      }}
+                      options={formData.state ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.map(d => d.name) || []) : []}
+                      disabled={!formData.state}
+                      placeholder="Select District"
+                    />
+                    <SearchableSelect
+                      label="Mandal"
+                      value={formData.mandal}
+                      onChange={(val) => {
+                        setFormData(prev => ({ ...prev, mandal: val }));
+                      }}
+                      options={
+                        (formData.state && formData.district)
+                          ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.find(d => d.name === formData.district)?.blockList || [])
+                          : []
+                      }
+                      disabled={!formData.district}
+                      placeholder="Select Mandal"
+                    />
                   </div>
 
                   <div className="space-y-2">
