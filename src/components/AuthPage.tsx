@@ -22,6 +22,7 @@ import {
 import indiaLocations from '../data/india_locations.json';
 import { getTopCropsForLocation } from '../data/crops_by_location';
 import CropDropdown from './CropDropdown';
+import { useToast } from './ToastProvider';
 
 // Create a type for the location data structure based on the JSON
 interface District {
@@ -124,6 +125,7 @@ const SearchableSelect = ({
 
 export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: string, user?: any) => void }) {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [isLogin, setIsLogin] = useState(true);
   const [phase, setPhase] = useState(1);
@@ -169,46 +171,46 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
 
   const handleSendMobileOtp = async () => {
     if (!formData.mobile || formData.mobile.length < 10) {
-      alert('Please enter a valid mobile number');
+      addToast('Please enter a valid mobile number', 'error');
       return;
     }
     // In production, call your SMS API here
     console.log('Sending OTP to mobile:', formData.mobile);
     setMobileOtpSent(true);
-    alert('OTP sent to your mobile number');
+    addToast('OTP sent to your mobile number', 'success');
   };
 
   const handleVerifyMobileOtp = () => {
     if (!formData.mobileOtp || formData.mobileOtp.length < 4) {
-      alert('Please enter a valid OTP');
+      addToast('Please enter a valid OTP', 'error');
       return;
     }
     // In production, verify with backend
     console.log('Verifying mobile OTP:', formData.mobileOtp);
     setMobileOtpVerified(true);
-    alert('Mobile number verified successfully');
+    addToast('Mobile number verified successfully', 'success');
   };
 
   const handleSendEmailOtp = async () => {
     if (!formData.email || !formData.email.includes('@')) {
-      alert('Please enter a valid email address');
+      addToast('Please enter a valid email address', 'error');
       return;
     }
     // In production, call your Email API here
     console.log('Sending OTP to email:', formData.email);
     setEmailOtpSent(true);
-    alert('OTP sent to your email');
+    addToast('OTP sent to your email', 'success');
   };
 
   const handleVerifyEmailOtp = () => {
     if (!formData.emailOtp || formData.emailOtp.length < 4) {
-      alert('Please enter a valid OTP');
+      addToast('Please enter a valid OTP', 'error');
       return;
     }
     // In production, verify with backend
     console.log('Verifying email OTP:', formData.emailOtp);
     setEmailOtpVerified(true);
-    alert('Email verified successfully');
+    addToast('Email verified successfully', 'success');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -238,11 +240,11 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
         localStorage.setItem('userLocation', userLocation);
         onAuthSuccess(fullName, data.user);
       } else {
-        alert('Login failed. Please check your credentials.');
+        addToast('Login failed. Please check your credentials.', 'error');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('An error occurred during login.');
+      addToast('An error occurred during login.', 'error');
     }
   };
 
@@ -254,32 +256,32 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
 
     // Validation
     if (!formData.mobile || !formData.password) {
-      alert('Mobile number and password are required');
+      addToast('Mobile number and password are required', 'error');
       return;
     }
 
     if (!mobileOtpVerified || !emailOtpVerified) {
-      alert('Please verify both mobile and email before registering');
+      addToast('Please verify both mobile and email before registering', 'error');
       return;
     }
 
     if (formData.password.length < 6) {
-      alert('Password must be at least 6 characters long');
+      addToast('Password must be at least 6 characters long', 'error');
       return;
     }
 
     if (!formData.firstName || !formData.lastName) {
-      alert('First name and last name are required');
+      addToast('First name and last name are required', 'error');
       return;
     }
 
     if (!formData.state || !formData.district || !formData.mandal) {
-      alert('Please select state, district, and mandal');
+      addToast('Please select state, district, and mandal', 'error');
       return;
     }
 
     if (formData.selectedCrops.length === 0) {
-      alert('Please select at least one crop');
+      addToast('Please select at least one crop', 'error');
       return;
     }
 
@@ -319,6 +321,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
 
       if (response.ok) {
         setIsRegistrationSuccess(true);
+        addToast('Registration successful!', 'success');
         setTimeout(() => {
           setIsRegistrationSuccess(false);
           setIsLogin(true);
@@ -343,11 +346,11 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
           });
         }, 3000);
       } else {
-        alert(data.message || 'Registration failed. Please try again.');
+        addToast(data.message || 'Registration failed. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      alert('An error occurred during registration. Please try again.');
+      addToast('An error occurred during registration. Please try again.', 'error');
     }
   };
 
@@ -799,23 +802,23 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                       onClick={() => {
                         if (phase === 1) {
                           if (!mobileOtpVerified || !emailOtpVerified) {
-                            alert('Please verify both mobile and email before proceeding');
+                            addToast('Please verify both mobile and email before proceeding', 'error');
                             return;
                           }
                           if (!formData.password) {
-                            alert('Please enter a password');
+                            addToast('Please enter a password', 'error');
                             return;
                           }
                           setPhase(2);
                         } else if (phase === 2) {
                           if (!formData.firstName || !formData.lastName || !formData.age) {
-                            alert('Please fill in all profile fields');
+                            addToast('Please fill in all profile fields', 'error');
                             return;
                           }
                           setPhase(3);
                         } else if (phase === 3) {
                           if (!formData.state || !formData.district || !formData.mandal || formData.selectedCrops.length === 0) {
-                            alert('Please select all location and at least one crop');
+                            addToast('Please select all location and at least one crop', 'error');
                             return;
                           }
                           console.log('Complete Registration button clicked');
