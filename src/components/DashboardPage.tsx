@@ -22,6 +22,7 @@ import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getWeatherData } from '../services/weatherService';
+import { useTranslation } from 'react-i18next';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -39,6 +40,49 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ userName, onImageUpload, fileInputRef, user, onUpdateProfile, onAddCrop, onSelectCrop, isLoading }: DashboardPageProps) {
+    const { t, i18n } = useTranslation();
+
+    const translateCrop = React.useCallback((cropName: string | undefined) => {
+        if (!cropName) return t('dashboard.not_selected');
+        // Define common crop keys
+        const cropKeys = [
+            'paddy', 'wheat', 'cotton', 'maize', 'chilli', 'turmeric',
+            'tomato', 'sugarcane', 'groundnut', 'mustard', 'onion',
+            'potato', 'guava', 'mango', 'banana', 'grapes',
+            'ginger', 'garlic', 'soybean', 'chickpea',
+            'black_gram', 'green_gram', 'tea'
+        ];
+
+        // Find if the cropName matches any of the English names in resources
+        const foundKey = cropKeys.find(key => {
+            const enName = i18n.getResource('en', 'translation', `crops_page.data.${key}.name`);
+            return enName?.toLowerCase() === cropName.toLowerCase();
+        });
+
+        return foundKey ? t(`crops_page.data.${foundKey}.name`) : cropName;
+    }, [t, i18n]);
+
+    const translateLocation = React.useCallback((locName: string | undefined) => {
+        if (!locName) return '';
+        // Map common names to translation keys
+        const locMap: Record<string, string> = {
+            'Andhra Pradesh': 'andhra_pradesh',
+            'Telangana': 'telangana',
+            'Guntur': 'guntur',
+            'Chittoor': 'chittoor',
+            'Kurnool': 'kurnool',
+            'Warangal': 'warangal',
+            'Hyderabad': 'hyderabad'
+        };
+
+        const key = locMap[locName];
+        return key ? t(`dashboard.locations.${key}`) : locName;
+    }, [t]);
+
+    const translateName = React.useCallback((name: string | undefined) => {
+        if (!name || name === 'FARMER NAME' || name === 'Farmer') return t('dashboard.locations.farmer');
+        return name;
+    }, [t]);
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
     const [editFormData, setEditFormData] = React.useState({
         firstName: '',
@@ -196,22 +240,22 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                 <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-50 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-4">
                         <Loader2 size={48} className="text-[#00ab55] animate-spin" />
-                        <p className="text-[#00ab55] font-black text-[10px] uppercase tracking-widest">Gathering your farm data...</p>
+                        <p className="text-[#00ab55] font-black text-[10px] uppercase tracking-widest">{t('dashboard.loading.gathering')}</p>
                     </div>
                 </div>
             )}
             <div className="max-w-[1600px] mx-auto">
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
                     <div>
-                        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Farm Management</h1>
-                        <p className="text-gray-400 mt-1 font-medium italic">Real-time overview of your agricultural assets.</p>
+                        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">{t('dashboard.title')}</h1>
+                        <p className="text-gray-400 mt-1 font-medium italic">{t('dashboard.subtitle')}</p>
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setIsAddCropModalOpen(true)} className="bg-[#00ab55] text-white font-black text-[10px] uppercase tracking-widest px-8 py-3.5 rounded-xl hover:bg-[#00964a] transition-all shadow-lg shadow-[#00ab55]/20 flex items-center gap-2">
-                            <Plus size={16} /> ADD NEW CROP
+                            <Plus size={16} /> {t('dashboard.add_crop')}
                         </button>
                         <button onClick={() => setIsMyCropsModalOpen(true)} className="bg-white text-[#00ab55] border-2 border-[#00ab55]/20 font-black text-[10px] uppercase tracking-widest px-8 py-3 rounded-xl hover:bg-[#00ab55]/5 transition-all">
-                            MY CROPS
+                            {t('dashboard.my_crops')}
                         </button>
                     </div>
                 </header>
@@ -226,25 +270,27 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                         </div>
 
                         <h2 className="text-3xl font-bold text-gray-900 text-center uppercase tracking-tight leading-tight max-w-[200px]">
-                            {userName || 'FARMER NAME'}
+                            {translateName(userName)}
                         </h2>
 
                         <div className="mt-4 flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#00ab55]/20 bg-[#00ab55]/5 text-[#00ab55] text-[10px] font-bold uppercase tracking-widest">
-                            <CheckCircle2 size={12} /> VERIFIED FARMER
+                            <CheckCircle2 size={12} /> {t('dashboard.verified')}
                         </div>
 
                         <div className="w-full mt-10 space-y-6">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-2">LOCATION DETAILS</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100 pb-2">{t('dashboard.location_details')}</h3>
 
                             <div className="flex gap-4 items-start">
                                 <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
                                     <MapPin size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-gray-300 uppercase">{user?.location?.state || 'Location Not Set'}</p>
+                                    <p className="text-[10px] font-bold text-gray-300 uppercase">{translateLocation(user?.location?.state) || t('dashboard.not_set')}</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {user?.location?.district || ''}{user?.location?.district && user?.location?.mandal ? ', ' : ''}{user?.location?.mandal || ''}
-                                        {!user?.location?.district && !user?.location?.mandal && 'Details Not Set'}
+                                        {translateLocation(user?.location?.district) || ''}
+                                        {user?.location?.district && user?.location?.mandal ? ', ' : ''}
+                                        {translateLocation(user?.location?.mandal) || ''}
+                                        {!user?.location?.district && !user?.location?.mandal && t('dashboard.details_not_set')}
                                     </p>
                                 </div>
                             </div>
@@ -254,8 +300,8 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                     <Leaf size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-gray-300 uppercase">Primary Crop</p>
-                                    <p className="text-sm font-bold text-gray-700">{user?.cropDetails?.cropName || 'Not Selected'}</p>
+                                    <p className="text-[10px] font-bold text-gray-300 uppercase">{t('dashboard.primary_crop')}</p>
+                                    <p className="text-sm font-bold text-gray-700">{translateCrop(user?.cropDetails?.cropName)}</p>
                                 </div>
                             </div>
                         </div>
@@ -264,7 +310,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             onClick={() => setIsEditModalOpen(true)}
                             className="w-full mt-10 bg-[#161b22] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3"
                         >
-                            <Pencil size={16} /> EDIT PROFILE
+                            <Pencil size={16} /> {t('dashboard.edit_profile')}
                         </button>
                     </div>
 
@@ -273,18 +319,18 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                         {/* Top Stats Strip */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <DashboardStat
-                                label="ACTIVE CROP"
-                                value={user?.cropDetails?.cropName || "Paddy"}
+                                label={t('dashboard.active_crop')}
+                                value={translateCrop(user?.cropDetails?.cropName) || "Paddy"}
                                 icon={<Leaf className="text-green-500" size={24} />}
                             />
                             <DashboardStat
-                                label="CYCLE PROGRESS"
+                                label={t('dashboard.cycle_progress')}
                                 value={calculateProgress(user?.cropDetails?.startDate, user?.cropDetails?.endDate)}
                                 icon={<Calendar className="text-blue-500" size={24} />}
                             />
                             <DashboardStat
-                                label="MARKET TREND"
-                                value={marketLoading ? '...' : primaryMarket?.percentage_change ? `${parseFloat(primaryMarket.percentage_change) >= 0 ? '↑' : '↓'} ${Math.abs(parseFloat(primaryMarket.percentage_change))}%` : (primaryMarket ? '0%' : 'N/A')}
+                                label={t('dashboard.market_trend')}
+                                value={marketLoading ? t('dashboard.loading.thinking') : primaryMarket?.percentage_change ? `${parseFloat(primaryMarket.percentage_change) >= 0 ? '↑' : '↓'} ${Math.abs(parseFloat(primaryMarket.percentage_change))}%` : (primaryMarket ? '0%' : 'N/A')}
                                 icon={
                                     primaryMarket ? (
                                         parseFloat(primaryMarket.percentage_change || '0') < 0
@@ -294,8 +340,8 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 }
                             />
                             <DashboardStat
-                                label="IRRIGATION"
-                                value="Normal"
+                                label={t('dashboard.irrigation')}
+                                value={t('dashboard.irrigation_normal')}
                                 icon={<Droplets className="text-blue-400" size={24} />}
                             />
                         </div>
@@ -305,7 +351,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             <div className="bg-white rounded-[40px] p-8 shadow-lg shadow-gray-200/50 border border-gray-100">
                                 <header className="flex items-center gap-2 mb-8">
                                     <CloudSun className="text-[#00ab55]" size={20} />
-                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">Daily Weather Feed</h3>
+                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">{t('dashboard.weather_feed')}</h3>
                                 </header>
 
                                 <div className="space-y-6">
@@ -318,32 +364,32 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                     ) : weatherData ? (
                                         <>
                                             <WeatherRow
-                                                label="Temperature"
+                                                label={t('dashboard.weather.temp')}
                                                 value={`${weatherData.current.temperature}°C`}
                                             />
                                             <WeatherRow
-                                                label="Humidity"
+                                                label={t('dashboard.weather.humidity')}
                                                 value={`${weatherData.current.humidity}%`}
                                             />
                                             <WeatherRow
-                                                label="Rain Today"
-                                                value={weatherData.current.rain > 0 ? `${weatherData.current.rain} mm` : 'None'}
+                                                label={t('dashboard.weather.rain_today')}
+                                                value={weatherData.current.rain > 0 ? `${weatherData.current.rain} mm` : t('dashboard.weather.none')}
                                                 highlighted={weatherData.current.rain > 0}
                                             />
                                             <WeatherRow
-                                                label="Wind Speed"
+                                                label={t('dashboard.weather.wind_speed')}
                                                 value={`${weatherData.current.windSpeed} km/h`}
                                             />
                                             {weatherData.forecast[0] && (
                                                 <WeatherRow
-                                                    label="Tomorrow Rain"
-                                                    value={`${weatherData.forecast[0].rainChance}% chance`}
+                                                    label={t('dashboard.weather.tomorrow_rain')}
+                                                    value={t('dashboard.weather.chance', { percent: weatherData.forecast[0].rainChance })}
                                                     highlighted={weatherData.forecast[0].rainChance > 50}
                                                 />
                                             )}
                                         </>
                                     ) : (
-                                        <p className="text-xs text-gray-400 text-center py-4">Set your location to see weather</p>
+                                        <p className="text-xs text-gray-400 text-center py-4">{t('dashboard.weather.set_location')}</p>
                                     )}
                                 </div>
                             </div>
@@ -351,15 +397,17 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             <div className="bg-[#0a2635] rounded-[40px] p-8 shadow-xl shadow-gray-900/10 text-white flex flex-col justify-between relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#00ab55]/10 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#00ab55]/20 transition-all duration-500" />
                                 <div>
-                                    <h3 className="text-xl font-bold tracking-tight mb-4">AI Recommendation</h3>
+                                    <h3 className="text-xl font-bold tracking-tight mb-4">{t('dashboard.ai_recommendation.title')}</h3>
                                     <p className="text-white/70 text-sm leading-relaxed max-w-[280px]">
-                                        Localized analysis for {user?.location?.district || 'your area'} shows stable soil conditions.
-                                        Continue with the current {user?.cropDetails?.cropName || 'crop'} management plan for optimal growth.
+                                        {t('dashboard.ai_recommendation.desc', {
+                                            district: translateLocation(user?.location?.district) || t('dashboard.not_set'),
+                                            crop: translateCrop(user?.cropDetails?.cropName)
+                                        })}
                                     </p>
                                 </div>
 
                                 <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#00ab55] hover:text-white transition-colors mt-8">
-                                    ACCESS FULL AI LAB <ArrowUpRight size={14} />
+                                    {t('dashboard.ai_recommendation.access_lab')} <ArrowUpRight size={14} />
                                 </button>
                             </div>
                         </div>
@@ -369,13 +417,13 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             <header className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-2">
                                     <BarChart3 className="text-[#00ab55]" size={20} />
-                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">Market Price</h3>
+                                    <h3 className="text-lg font-bold text-gray-900 tracking-tight">{t('dashboard.market.title')}</h3>
                                 </div>
                                 <button
                                     onClick={() => window.location.href = '/market'}
                                     className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[#00ab55] hover:text-[#00964a] transition-colors"
                                 >
-                                    VIEW ALL <ArrowUpRight size={12} />
+                                    {t('dashboard.market.view_all')} <ArrowUpRight size={12} />
                                 </button>
                             </header>
 
@@ -386,15 +434,15 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             ) : marketError ? (
                                 <div className="py-8 text-center">
                                     <p className="text-gray-400 text-sm font-medium">{marketError}</p>
-                                    <p className="text-gray-300 text-xs mt-1 italic">Set your primary crop in profile to see live prices.</p>
+                                    <p className="text-gray-300 text-xs mt-1 italic">{t('dashboard.market.set_crop_desc', { defaultValue: 'Set your primary crop in profile to see live prices.' })}</p>
                                 </div>
                             ) : primaryMarket ? (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between p-5 bg-[#00ab55]/5 rounded-2xl border border-[#00ab55]/10">
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Commodity</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('dashboard.market.commodity')}</p>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-lg font-bold text-gray-900">{primaryMarket.commodity}</p>
+                                                <p className="text-lg font-bold text-gray-900">{translateCrop(primaryMarket.commodity)}</p>
                                                 {primaryMarket.percentage_change && parseFloat(primaryMarket.percentage_change) !== 0 && (
                                                     <div className={cn(
                                                         "flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[8px] font-black",
@@ -407,10 +455,10 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Modal Price</p>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('dashboard.market.modal_price')}</p>
                                             <p className="text-2xl font-bold text-[#00ab55]">₹{primaryMarket.modal_price}</p>
                                             {primaryMarket.previous_modal_price && (
-                                                <p className="text-[8px] font-bold text-gray-400 italic">Was ₹{primaryMarket.previous_modal_price}</p>
+                                                <p className="text-[8px] font-bold text-gray-400 italic">{t('dashboard.market.was', { price: primaryMarket.previous_modal_price })}</p>
                                             )}
                                         </div>
                                     </div>
@@ -418,27 +466,27 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
                                             <ArrowDown className="text-red-400" size={16} />
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Min</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">{t('dashboard.market.min')}</p>
                                                 <p className="text-sm font-bold text-gray-700">₹{primaryMarket.min_price}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
                                             <ArrowUp className="text-green-500" size={16} />
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">Max</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">{t('dashboard.market.max')}</p>
                                                 <p className="text-sm font-bold text-gray-700">₹{primaryMarket.max_price}</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-2xl italic">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Market</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{t('dashboard.market.market')}</span>
                                         <span className="text-xs font-bold text-gray-600">{primaryMarket.market}, {primaryMarket.district}</span>
                                     </div>
 
                                     {/* Nearby Markets Section */}
                                     {marketData.length > 1 && (
                                         <div className="mt-6 pt-6 border-t border-gray-100">
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">Nearby Markets</h4>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">{t('dashboard.market.nearby')}</h4>
                                             <div className="space-y-2">
                                                 {marketData.filter((m: any) => !m.is_primary).map((m: any, i: number) => (
                                                     <div key={i} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl hover:bg-gray-50 transition-colors">
@@ -479,7 +527,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                     >
                         <div className="p-10">
                             <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Edit Profile</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{t('dashboard.modals.edit_profile')}</h2>
                                 <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                     <X size={20} className="text-gray-400" />
                                 </button>
@@ -488,7 +536,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">First Name</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.first_name')}</label>
                                         <input
                                             type="text"
                                             value={editFormData.firstName}
@@ -497,7 +545,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Last Name</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.last_name')}</label>
                                         <input
                                             type="text"
                                             value={editFormData.lastName}
@@ -508,7 +556,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 </div>
 
                                 <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">State</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.state')}</label>
                                     <input
                                         type="text"
                                         value={editFormData.state}
@@ -519,7 +567,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">District</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.district')}</label>
                                         <input
                                             type="text"
                                             value={editFormData.district}
@@ -528,7 +576,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Mandal / Town</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.mandal')}</label>
                                         <input
                                             type="text"
                                             value={editFormData.mandal}
@@ -539,7 +587,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 </div>
 
                                 <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Primary Crop</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.primary_crop')}</label>
                                     <input
                                         type="text"
                                         value={editFormData.cropName}
@@ -550,7 +598,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Sowing Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.sowing_date')}</label>
                                         <input
                                             type="date"
                                             value={editFormData.startDate}
@@ -559,7 +607,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Harvest Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.harvest_date')}</label>
                                         <input
                                             type="date"
                                             value={editFormData.endDate}
@@ -575,14 +623,14 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                     onClick={() => setIsEditModalOpen(false)}
                                     className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors"
                                 >
-                                    CANCEL
+                                    {t('dashboard.modals.cancel')}
                                 </button>
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving}
                                     className="flex-1 bg-[#00ab55] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#00964a] transition-all shadow-lg shadow-[#00ab55]/20 flex items-center justify-center gap-2"
                                 >
-                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : 'SAVE CHANGES'}
+                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : t('dashboard.modals.save')}
                                 </button>
                             </div>
                         </div>
@@ -601,7 +649,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                     >
                         <div className="p-10">
                             <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">My Crops</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{t('dashboard.modals.my_crops')}</h2>
                                 <button onClick={() => setIsMyCropsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                     <X size={20} className="text-gray-400" />
                                 </button>
@@ -620,7 +668,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         )}
                                     >
                                         <div>
-                                            <h4 className="font-bold text-gray-900 uppercase tracking-tight">{crop.cropName}</h4>
+                                            <h4 className="font-bold text-gray-900 uppercase tracking-tight">{translateCrop(crop.cropName)}</h4>
                                             <p className="text-[10px] font-bold text-gray-400 mt-1">
                                                 {new Date(crop.startDate).toLocaleDateString()} - {new Date(crop.endDate).toLocaleDateString()}
                                             </p>
@@ -631,7 +679,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                             </div>
                                         ) : (
                                             <div className="text-[10px] font-black uppercase tracking-widest text-[#00ab55] opacity-0 group-hover:opacity-100 transition-opacity">
-                                                SELECT
+                                                {t('dashboard.modals.select')}
                                             </div>
                                         )}
                                     </div>
@@ -645,7 +693,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 }}
                                 className="w-full mt-8 bg-gray-50 text-gray-500 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
                             >
-                                <Plus size={16} /> ADD ANOTHER CROP
+                                <Plus size={16} /> {t('dashboard.modals.add_another')}
                             </button>
                         </div>
                     </motion.div>
@@ -663,7 +711,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                     >
                         <div className="p-10">
                             <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">Add New Crop</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">{t('dashboard.modals.add_new_crop')}</h2>
                                 <button onClick={() => setIsAddCropModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                     <X size={20} className="text-gray-400" />
                                 </button>
@@ -671,10 +719,10 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
 
                             <div className="space-y-6">
                                 <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Crop Name</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.crop_name')}</label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Paddy, Cotton, Maize"
+                                        placeholder={t('dashboard.modals.crop_name_placeholder')}
                                         value={newCropData.cropName}
                                         onChange={(e) => setNewCropData({ ...newCropData, cropName: e.target.value })}
                                         className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#00ab55]/10 font-bold text-sm text-gray-700"
@@ -683,7 +731,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Sowing Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.sowing_date')}</label>
                                         <input
                                             type="date"
                                             value={newCropData.startDate}
@@ -692,7 +740,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Harvest Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{t('dashboard.modals.harvest_date')}</label>
                                         <input
                                             type="date"
                                             value={newCropData.endDate}
@@ -708,14 +756,14 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                     onClick={() => setIsAddCropModalOpen(false)}
                                     className="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors"
                                 >
-                                    CANCEL
+                                    {t('dashboard.modals.cancel')}
                                 </button>
                                 <button
                                     onClick={handleAddCrop}
                                     disabled={isSaving || !newCropData.cropName}
                                     className="flex-1 bg-[#00ab55] text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#00964a] transition-all shadow-lg shadow-[#00ab55]/20 flex items-center justify-center gap-2"
                                 >
-                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : 'ADD CROP'}
+                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : t('dashboard.modals.add_crop')}
                                 </button>
                             </div>
                         </div>
