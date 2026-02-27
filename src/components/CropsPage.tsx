@@ -419,9 +419,9 @@ export default function CropsPage() {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden"
+                            className="relative w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden h-[85vh] flex flex-col"
                         >
-                            <div className="h-64 relative">
+                            <div className="h-[30%] relative shrink-0">
                                 <img src={selectedCrop.image} alt={t(`crops_page.data.${selectedCrop.id}.name`, { defaultValue: selectedCrop.name })} className="w-full h-full object-cover" />
                                 <button
                                     onClick={() => setSelectedCrop(null)}
@@ -437,31 +437,36 @@ export default function CropsPage() {
                                 </div>
                             </div>
 
-                            <div className="p-10">
-                                <div className="flex items-center justify-between mb-8">
+                            <form
+                                onSubmit={(e) => e.preventDefault()}
+                                className="flex-1 flex flex-col overflow-hidden h-[70%] p-8 bg-slate-50 border border-slate-100 rounded-[30px] m-6 mt-0"
+                            >
+                                <div className="flex items-center justify-between mb-4 shrink-0">
                                     <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
                                         {t('crops_page.view_details')}
                                     </h4>
                                     <button
+                                        type="button"
                                         onClick={() => handleCopy(t(`crops_page.data.${selectedCrop.id}.guidelines`, { defaultValue: selectedCrop.guidelines }))}
-                                        className="flex items-center gap-2 px-6 py-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-600 font-bold text-xs uppercase tracking-widest transition-all"
+                                        className="flex items-center justify-center w-8 h-8 bg-white border border-slate-200 hover:bg-gray-50 rounded-lg text-gray-600 transition-all"
+                                        title={copied ? t('crops_page.copied') : t('crops_page.copy_guidelines')}
                                     >
                                         {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-                                        {copied ? t('crops_page.copied') : t('crops_page.copy_guidelines')}
                                     </button>
                                 </div>
 
-                                <div className="bg-slate-50 border border-slate-100 p-8 rounded-[30px] whitespace-pre-wrap text-gray-600 leading-relaxed font-medium">
+                                <div className="whitespace-pre-wrap text-gray-600 leading-relaxed font-medium flex-1 overflow-y-auto no-scrollbar mb-6">
                                     {t(`crops_page.data.${selectedCrop.id}.guidelines`, { defaultValue: selectedCrop.guidelines })}
                                 </div>
 
                                 <button
+                                    type="button"
                                     onClick={() => setSelectedCrop(null)}
-                                    className="w-full mt-10 py-5 bg-primary text-white font-bold text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-primary-dark transition-all shadow-xl shadow-primary/20"
+                                    className="w-full shrink-0 py-4 bg-primary text-white font-bold text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
                                 >
                                     BACK TO REPOSITORY
                                 </button>
-                            </div>
+                            </form>
                         </motion.div>
                     </div>
                 )}
