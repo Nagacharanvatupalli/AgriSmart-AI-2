@@ -221,17 +221,78 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
         setIsSaving(false);
     };
 
-    // Helper to calculate cycle progress
-    const calculateProgress = (startDate: string | Date, endDate: string | Date) => {
-        if (!startDate || !endDate) return "0%";
-        const start = new Date(startDate).getTime();
-        const end = new Date(endDate).getTime();
-        const now = new Date().getTime();
-        if (now < start) return "0%";
-        if (now > end) return "100%";
-        const total = end - start;
-        const current = now - start;
-        return `${Math.round((current / total) * 100)}%`;
+    const calculateIrrigation = (cropName: string | undefined, weather: any) => {
+        if (!cropName) return t('dashboard.irrigation_normal', { defaultValue: 'Normal (10-15mm/day)' });
+
+        const crop = cropName.toLowerCase();
+        let baseNeeds = '';
+
+        // General estimates based on common crops
+        if (crop.includes('paddy') || crop.includes('rice')) {
+            baseNeeds = 'High (10-15mm/day)';
+        } else if (crop.includes('wheat') || crop.includes('maize') || crop.includes('cotton')) {
+            baseNeeds = 'Medium (5-8mm/day)';
+        } else if (crop.includes('groundnut') || crop.includes('chickpea') || crop.includes('mustard')) {
+            baseNeeds = 'Low (3-5mm/day)';
+        } else if (crop.includes('sugarcane') || crop.includes('banana')) {
+            baseNeeds = 'Very High (15-20mm/day)';
+        } else {
+            baseNeeds = 'Moderate (5-10mm/day)';
+        }
+
+        // Adjust if it's raining
+        if (weather?.current?.rain > 0) {
+            return `Skip (Rain: ${weather.current.rain}mm)`;
+        }
+
+        return baseNeeds;
+    };
+
+    const getCropSuggestions = (cropName: string | undefined, weather: any) => {
+        if (!cropName) return [t('dashboard.ai_recommendation.no_crop', { defaultValue: 'Please set your active crop to receive tailored insights.' })];
+
+        const crop = cropName.toLowerCase();
+        const rain = weather?.current?.rain || 0;
+
+        const suggestions: string[] = [];
+
+        if (crop.includes('paddy') || crop.includes('rice')) {
+            suggestions.push("Maintain standing water of 2-5cm during early vegetative stages.");
+            suggestions.push("Monitor for stem borer and apply Neem oil as preventive measure.");
+            suggestions.push("Profit Tip: Plant a legume crop like black gram after harvest to fix nitrogen and reduce next season's fertilizer costs.");
+        } else if (crop.includes('cotton')) {
+            suggestions.push("Avoid field waterlogging to prevent early boll shedding.");
+            suggestions.push("Inspect undersides of leaves actively for whitefly infestation.");
+            suggestions.push("Profit Tip: Implement drip irrigation to save up to 40% on water and fertilizer costs, drastically improving ROI.");
+        } else if (crop.includes('maize')) {
+            suggestions.push("Top dress with nitrogen at knee-high stage for optimal growth.");
+            suggestions.push("Keep field weed-free during precisely the first 30 days.");
+            suggestions.push("Profit Tip: Intercrop with beans or cowpeas to suppress weeds naturally and create a secondary income stream.");
+        } else if (crop.includes('wheat')) {
+            suggestions.push("Ensure timely irrigation at crown root initiation (CRI) stage.");
+            suggestions.push("Check rigorously for yellow rust symptoms on lower leaves.");
+            suggestions.push("Profit Tip: Avoid applying excess urea. Conduct a soil test to apply only needed nutrients and save on input costs.");
+        } else if (crop.includes('tomato') || crop.includes('chilli')) {
+            suggestions.push("Ensure proper staking to prevent fruit rot and soil contact.");
+            suggestions.push("Apply mulch to retain soil moisture and naturally reduce weeds.");
+            suggestions.push("Profit Tip: Monitor market trends closely. Prices often peak sharply 3-4 weeks from now, consider staggered harvesting.");
+        } else if (crop.includes('groundnut')) {
+            suggestions.push("Apply gypsum at the pegging stage to improve pod development.");
+            suggestions.push("Check for tikka leaf spot and apply fungicides if spots appear.");
+            suggestions.push("Profit Tip: Sell your harvest during the exact off-season window to secure a 15-20% premium over harvest-time prices.");
+        } else {
+            suggestions.push(`Monitor ${translateCrop(cropName)} closely for early signs of nutrient deficiency.`);
+            suggestions.push("Ensure proper field drainage to maintain healthy root systems.");
+            suggestions.push("Profit Tip: Before purchasing expensive chemical fertilizers, check if your region has active government subsidies available.");
+        }
+
+        if (rain > 5) {
+            suggestions.push("Heavy rain detected: Delay any planned fertilizer or pesticide application.");
+        } else if (weather?.current?.temperature > 35) {
+            suggestions.push("High heat alert: Apply light irrigation in the evening to reduce stress.");
+        }
+
+        return suggestions;
     };
 
     return (
@@ -317,16 +378,11 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                     {/* Right Column: Stats and Info */}
                     <div className="lg:col-span-8 flex flex-col gap-8">
                         {/* Top Stats Strip */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <DashboardStat
                                 label={t('dashboard.active_crop')}
                                 value={translateCrop(user?.cropDetails?.cropName) || "Paddy"}
                                 icon={<Leaf className="text-green-500" size={24} />}
-                            />
-                            <DashboardStat
-                                label={t('dashboard.cycle_progress')}
-                                value={calculateProgress(user?.cropDetails?.startDate, user?.cropDetails?.endDate)}
-                                icon={<Calendar className="text-blue-500" size={24} />}
                             />
                             <DashboardStat
                                 label={t('dashboard.market_trend')}
@@ -341,7 +397,7 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                             />
                             <DashboardStat
                                 label={t('dashboard.irrigation')}
-                                value={t('dashboard.irrigation_normal')}
+                                value={calculateIrrigation(user?.cropDetails?.cropName, weatherData)}
                                 icon={<Droplets className="text-blue-400" size={24} />}
                             />
                         </div>
@@ -398,12 +454,19 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#00ab55]/10 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-[#00ab55]/20 transition-all duration-500" />
                                 <div>
                                     <h3 className="text-xl font-bold tracking-tight mb-4">{t('dashboard.ai_recommendation.title')}</h3>
-                                    <p className="text-white/70 text-sm leading-relaxed max-w-[280px]">
-                                        {t('dashboard.ai_recommendation.desc', {
-                                            district: translateLocation(user?.location?.district) || t('dashboard.not_set'),
-                                            crop: translateCrop(user?.cropDetails?.cropName)
+                                    <div className="space-y-3">
+                                        {getCropSuggestions(user?.cropDetails?.cropName, weatherData).map((suggestion, idx) => {
+                                            const isProfitTip = suggestion.startsWith('Profit Tip:');
+                                            return (
+                                                <div key={idx} className={cn("flex items-start gap-2.5", isProfitTip && "mt-4 p-3 rounded-xl bg-[#00ab55]/10 border border-[#00ab55]/20")}>
+                                                    {!isProfitTip && <div className="w-1.5 h-1.5 rounded-full bg-[#00ab55] mt-1.5 shrink-0 shadow-[0_0_8px_#00ab55]" />}
+                                                    <p className={cn("text-white/80 text-sm leading-relaxed", isProfitTip && "text-[#00ab55] font-medium")}>
+                                                        {isProfitTip ? <><strong>Tip:</strong> {suggestion.replace('Profit Tip:', '')}</> : suggestion}
+                                                    </p>
+                                                </div>
+                                            );
                                         })}
-                                    </p>
+                                    </div>
                                 </div>
 
                                 <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#00ab55] hover:text-white transition-colors mt-8">

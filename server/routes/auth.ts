@@ -39,7 +39,12 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
       profile: profile || {},
       location: location || {},
-      crops: crops || []
+      crops: crops || [],
+      cropDetails: crops && crops.length > 0 ? {
+        cropName: crops[0].cropName,
+        startDate: new Date(),
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 4))
+      } : {}
     });
 
     console.log('Saving user to database...');
@@ -89,7 +94,8 @@ router.post('/login', async (req, res) => {
         email: user.email,
         profile: user.profile,
         location: user.location,
-        crops: user.crops
+        crops: user.crops,
+        cropDetails: user.cropDetails
       }
     });
   } catch (error) {
@@ -110,6 +116,14 @@ router.get('/profile', authMiddleware, async (req: AuthRequest, res) => {
     }
 
     console.log('Found user:', user.mobile);
+    if (!user.cropDetails && user.crops && user.crops.length > 0) {
+      user.cropDetails = {
+        cropName: user.crops[0].cropName,
+        startDate: user.crops[0].addedAt || new Date(),
+        endDate: new Date(new Date(user.crops[0].addedAt || new Date()).setMonth(new Date(user.crops[0].addedAt || new Date()).getMonth() + 4))
+      };
+      await user.save();
+    }
     res.json(user);
   } catch (error) {
     console.error('Fetch profile error:', error);
@@ -124,7 +138,7 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
     console.log('User ID:', req.userId);
     console.log('Payload:', JSON.stringify(req.body, null, 2));
 
-    const { profile, location, crops } = req.body;
+    const { profile, location, crops, cropDetails } = req.body;
 
     const user = await User.findById(req.userId);
     if (!user) {
@@ -143,6 +157,10 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
     if (crops) {
       console.log('Updating crops...');
       user.crops = crops;
+    }
+    if (cropDetails) {
+      console.log('Updating crop details...');
+      user.cropDetails = cropDetails;
     }
 
     await user.save();
@@ -176,6 +194,31 @@ router.post('/crops', authMiddleware, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Add crop error:', error);
     res.status(500).json({ message: 'Server error adding crop' });
+  }
+});
+
+// Select a crop
+router.put('/crops/select', authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    console.log('--- SELECT CROP ATTEMPT ---');
+    console.log('User ID:', req.userId);
+    const { cropId } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const selectedCrop = user.crops.find((c: any) => c._id.toString() === cropId);
+    if (!selectedCrop) return res.status(404).json({ message: 'Crop not found in your list' });
+
+    user.cropDetails = {
+      cropName: selectedCrop.cropName,
+      startDate: selectedCrop.addedAt,
+      endDate: new Date(new Date(selectedCrop.addedAt).setMonth(new Date(selectedCrop.addedAt).getMonth() + 4))
+    };
+    await user.save();
+    res.json({ message: 'Crop selected successfully', user });
+  } catch (error) {
+    console.error('Select crop error:', error);
+    res.status(500).json({ message: 'Server error selecting crop' });
   }
 });
 
