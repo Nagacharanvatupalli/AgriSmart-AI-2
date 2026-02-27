@@ -100,9 +100,20 @@ router.post('/register', async (req, res) => {
     const savedUser = await newUser.save();
     console.log('User registered successfully:', savedUser._id);
 
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+
     res.status(201).json({
       message: 'User registered successfully',
-      userId: savedUser._id
+      token,
+      user: {
+        id: savedUser._id,
+        mobile: savedUser.mobile,
+        email: savedUser.email,
+        profile: savedUser.profile,
+        location: savedUser.location,
+        crops: savedUser.crops,
+        cropDetails: savedUser.cropDetails
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -120,21 +131,30 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Mobile and OTP are required' });
     }
 
-    // Normalize number for consistency
+    // Normalize number for OTP verification (OTP store uses prefixed numbers +91...)
     const digits = mobile.replace(/\D/g, '');
+    let formattedMobile = mobile;
     if (!mobile.startsWith('+')) {
-      if (digits.length === 10) mobile = `+91${digits}`;
-      else mobile = `+${digits}`;
+      if (digits.length === 10) formattedMobile = `+91${digits}`;
+      else formattedMobile = `+${digits}`;
     }
 
-    const user = await User.findOne({ mobile });
+    // Attempt to find user by the raw input OR the formatted input
+    const user = await User.findOne({
+      $or: [
+        { mobile: mobile.trim() },
+        { mobile: formattedMobile },
+        { mobile: digits }
+      ]
+    });
+
     if (!user) {
-      console.log('User not found:', mobile);
+      console.log('User not found:', formattedMobile);
       return res.status(400).json({ message: 'No account found with this mobile number. Please register.' });
     }
 
-    // Verify OTP
-    const entry = mobileOtpStore.get(mobile);
+    // Verify OTP (uses the formatted mobile since Twilio sent it that way)
+    const entry = mobileOtpStore.get(formattedMobile);
     if (!entry) {
       return res.status(400).json({ message: 'No OTP found for this number. Request a new one.' });
     }

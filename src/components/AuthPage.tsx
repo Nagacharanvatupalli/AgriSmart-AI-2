@@ -442,28 +442,44 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       if (response.ok) {
         setIsRegistrationSuccess(true);
         addToast('Registration successful!', 'success');
-        setTimeout(() => {
-          setIsRegistrationSuccess(false);
-          setIsLogin(true);
-          setPhase(1);
-          setMobileOtpSent(false);
-          setMobileOtpVerified(false);
-          setEmailOtpSent(false);
-          setEmailOtpVerified(false);
-          setFormData({
-            mobile: '',
-            email: '',
-            mobileOtp: '',
-            emailOtp: '',
-            firstName: '',
-            lastName: '',
-            age: '',
-            state: '',
-            district: '',
-            mandal: '',
-            selectedCrops: [],
-          });
-        }, 3000);
+
+        if (data.token && data.user) {
+          localStorage.setItem('token', data.token);
+          const firstName = data.user.profile?.firstName || '';
+          const lastName = data.user.profile?.lastName || '';
+          const fullName = [firstName, lastName].filter(Boolean).join(' ') || data.user.mobile || data.user.email || '';
+          const userLocation = data.user.location ? `${data.user.location.mandal}, ${data.user.location.district}, ${data.user.location.state}` : '';
+
+          localStorage.setItem('userName', fullName);
+          localStorage.setItem('userLocation', userLocation);
+
+          setTimeout(() => {
+            onAuthSuccess(fullName, data.user);
+          }, 1500);
+        } else {
+          setTimeout(() => {
+            setIsRegistrationSuccess(false);
+            setIsLogin(true);
+            setPhase(1);
+            setMobileOtpSent(false);
+            setMobileOtpVerified(false);
+            setEmailOtpSent(false);
+            setEmailOtpVerified(false);
+            setFormData({
+              mobile: '',
+              email: '',
+              mobileOtp: '',
+              emailOtp: '',
+              firstName: '',
+              lastName: '',
+              age: '',
+              state: '',
+              district: '',
+              mandal: '',
+              selectedCrops: [],
+            });
+          }, 1500);
+        }
       } else {
         addToast(data.message || 'Registration failed. Please try again.', 'error');
       }
