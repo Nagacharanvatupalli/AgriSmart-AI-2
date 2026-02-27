@@ -14,11 +14,13 @@ import {
     AlertCircle,
     BarChart3,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ALL_MARKETS } from '../data/markets';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -111,11 +113,17 @@ const ALL_COMMODITIES = [
 export default function MarketPage() {
     const { t } = useTranslation();
     const [searchMarket, setSearchMarket] = useState(() => localStorage.getItem('market_location') || 'Guntur');
+    const [marketSearchInput, setMarketSearchInput] = useState(searchMarket);
+    const [showMarketDropdown, setShowMarketDropdown] = useState(false);
     const [selectedCrop, setSelectedCrop] = useState(() => localStorage.getItem('market_selectedCrop') || '');
     const [cropSearch, setCropSearch] = useState('');
     const [marketData, setMarketData] = useState<MarketData[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const filteredMarkets = ALL_MARKETS
+        .filter(m => m.toLowerCase().includes(marketSearchInput.toLowerCase()))
+        .slice(0, 100); // Limit results for performance
 
     const filteredCommodities = ALL_COMMODITIES
         .filter(crop => crop.toLowerCase().includes(cropSearch.toLowerCase()))
@@ -201,18 +209,65 @@ export default function MarketPage() {
                         <p className="text-gray-500 font-medium italic">{t('market.subtitle')}</p>
                     </div>
 
-                    <form onSubmit={handleSearch} className="flex gap-3 w-full lg:max-w-xl">
+                    <form onSubmit={handleSearch} className="flex gap-3 w-full lg:max-w-xl relative">
                         <div className="relative flex-1 group">
                             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00ab55] transition-colors">
                                 <MapPin size={20} />
                             </div>
                             <input
                                 type="text"
-                                value={searchMarket}
-                                onChange={(e) => setSearchMarket(e.target.value)}
+                                value={marketSearchInput}
+                                onChange={(e) => {
+                                    setMarketSearchInput(e.target.value);
+                                    setShowMarketDropdown(true);
+                                }}
+                                onFocus={() => setShowMarketDropdown(true)}
                                 placeholder={t('market.search_placeholder')}
-                                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[24px] focus:outline-none focus:ring-4 focus:ring-[#00ab55]/5 focus:border-[#00ab55]/20 transition-all font-semibold text-gray-700 shadow-sm"
+                                className="w-full pl-14 pr-12 py-4 bg-white border border-gray-100 rounded-[24px] focus:outline-none focus:ring-4 focus:ring-[#00ab55]/5 focus:border-[#00ab55]/20 transition-all font-semibold text-gray-700 shadow-sm"
                             />
+                            <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400">
+                                <ChevronDown size={20} className={cn("transition-transform duration-200", showMarketDropdown && "rotate-180")} />
+                            </div>
+
+                            <AnimatePresence>
+                                {showMarketDropdown && (
+                                    <>
+                                        <div
+                                            className="fixed inset-0 z-10"
+                                            onClick={() => setShowMarketDropdown(false)}
+                                        />
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-[24px] shadow-2xl z-20 max-h-[300px] overflow-y-auto custom-scrollbar overflow-x-hidden"
+                                        >
+                                            {filteredMarkets.length > 0 ? (
+                                                filteredMarkets.map((market) => (
+                                                    <button
+                                                        key={market}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearchMarket(market);
+                                                            setMarketSearchInput(market);
+                                                            setShowMarketDropdown(false);
+                                                            if (selectedCrop) fetchMarketPrices(selectedCrop, market);
+                                                        }}
+                                                        className="w-full text-left px-6 py-3 hover:bg-[#00ab55]/5 text-sm font-semibold text-gray-700 transition-colors flex items-center gap-3"
+                                                    >
+                                                        <MapPin size={14} className="text-gray-300" />
+                                                        {market}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-6 py-4 text-center text-gray-400 text-sm font-medium">
+                                                    No markets found
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    </>
+                                )}
+                            </AnimatePresence>
                         </div>
                         <button
                             type="submit"
@@ -329,8 +384,8 @@ export default function MarketPage() {
                                             label={t('market.modal_price')}
                                             price={primaryMarket.modal_price}
                                             sub={primaryMarket.previous_modal_price
-                                                ? t('market.was_price', {price: primaryMarket.previous_modal_price, date: new Date(primaryMarket.previous_date!).toLocaleDateString()})
-                                                : t('market.avg_price', {crop: primaryMarket.commodity})
+                                                ? t('market.was_price', { price: primaryMarket.previous_modal_price, date: new Date(primaryMarket.previous_date!).toLocaleDateString() })
+                                                : t('market.avg_price', { crop: primaryMarket.commodity })
                                             }
                                             trend={primaryMarket.actual_trend || primaryMarket.trend}
                                             percentage={primaryMarket.percentage_change}
@@ -388,12 +443,12 @@ export default function MarketPage() {
                                                 <div className="space-y-4">
                                                     <SuggestionItem
                                                         text={primaryMarket.trend === 'up' || primaryMarket.actual_trend === 'up'
-                                                            ? t('market.trend_up', {crop: selectedCrop})
-                                                            : t('market.trend_stable', {crop: selectedCrop})
+                                                            ? t('market.trend_up', { crop: selectedCrop })
+                                                            : t('market.trend_stable', { crop: selectedCrop })
                                                         }
                                                     />
                                                     <SuggestionItem
-                                                        text={t('market.price_gap', {gap: primaryMarket.max_price - primaryMarket.min_price})}
+                                                        text={t('market.price_gap', { gap: primaryMarket.max_price - primaryMarket.min_price })}
                                                     />
                                                 </div>
 
