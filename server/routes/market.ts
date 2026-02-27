@@ -25,6 +25,7 @@ router.get('/prices', authMiddleware, async (req, res) => {
         const query = `Get the latest real-time market prices for "${crop}" in "${market}" APMC/market in India.
         Also, find and include prices for at least 2 other NEAREST neighboring APMCs/markets to "${market}" for the same commodity.
         For each market (the primary one and the 2 neighbors), find the historical modal price from yesterday.
+        Crucially, divide the price data into 3 distinct quality grades (Grade 1 being highest quality, Grade 3 being lowest). Find or estimate the prices for these grades PER 100 KG (PER QUINTAL).
         Provide the data in a strict JSON array format, where each object has these fields:
         {
             "commodity": "string",
@@ -32,11 +33,12 @@ router.get('/prices', authMiddleware, async (req, res) => {
             "is_primary": "boolean (true for ${market}, false for neighbors)",
             "state": "string",
             "district": "string",
-            "min_price": "number",
-            "max_price": "number",
-            "modal_price": "number",
+            "grade1_price": "number (price per 100kg)",
+            "grade2_price": "number (price per 100kg)",
+            "grade3_price": "number (price per 100kg)",
+            "modal_price": "number (price per 100kg)",
             "date": "string (YYYY-MM-DD)",
-            "historical_price_yesterday": "number",
+            "historical_price_yesterday": "number (price per 100kg)",
             "source": "string"
         }
         Return ONLY the array of JSON objects.`;
@@ -66,22 +68,33 @@ router.get('/prices', authMiddleware, async (req, res) => {
         );
 
         const rawContent = response.data.choices[0].message.content;
-        const jsonMatch = rawContent.match(/\[[\s\S]*\]/);
+        let jsonPayload = null;
+        let marketResults = null;
 
-        if (jsonMatch) {
-            let marketResults;
-            try {
-                marketResults = JSON.parse(jsonMatch[0]);
-            } catch (e) {
-                console.error('[MARKET API] JSON Parse Error:', e);
-                return res.status(500).json({ message: 'Error parsing market data list' });
+        try {
+            const startIndex = rawContent.indexOf('[');
+            const endIndex = rawContent.lastIndexOf(']');
+
+            if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                jsonPayload = rawContent.substring(startIndex, endIndex + 1);
+                marketResults = JSON.parse(jsonPayload);
+            } else {
+                throw new Error('No array brackets found in response');
             }
+        } catch (e) {
+            console.error('[MARKET API] JSON Parse Error:', e);
+            console.error('[MARKET API] Problematic String:', jsonPayload || rawContent);
+            return res.status(500).json({ message: 'Error parsing market data list' });
+        }
+
+        if (marketResults && Array.isArray(marketResults)) {
 
             const processedResults = await Promise.all(marketResults.map(async (rawData: any) => {
                 const currentData = {
                     ...rawData,
-                    min_price: parseFloat(rawData.min_price) || 0,
-                    max_price: parseFloat(rawData.max_price) || 0,
+                    grade1_price: parseFloat(rawData.grade1_price) || 0,
+                    grade2_price: parseFloat(rawData.grade2_price) || 0,
+                    grade3_price: parseFloat(rawData.grade3_price) || 0,
                     modal_price: parseFloat(rawData.modal_price) || 0,
                     historical_price_yesterday: parseFloat(rawData.historical_price_yesterday) || 0
                 };
@@ -102,7 +115,7 @@ router.get('/prices', authMiddleware, async (req, res) => {
                         }
                     },
                     { ...currentData, date: currentDate },
-                    { upsert: true, new: true }
+                    { upsert: true, returnDocument: 'after' }
                 );
 
                 // Fetch previous record from DB for this market
@@ -132,7 +145,7 @@ router.get('/prices', authMiddleware, async (req, res) => {
 
             res.json(processedResults);
         } else {
-            console.error('[MARKET API] No array found in response:', rawContent);
+            console.error('[MARKET API] Invalid array format:', rawContent);
             res.status(500).json({ message: 'Failed to parse market data list' });
         }
     } catch (error: any) {
