@@ -1,13 +1,16 @@
 import express from 'express';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import MarketPrice from '../models/MarketPrice';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 dotenv.config();
 
 const router = express.Router();
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
-router.get('/prices', async (req, res) => {
+// User must be logged in to access market data
+router.get('/prices', authMiddleware, async (req, res) => {
     const { crop, market } = req.query;
 
     if (!crop || !market) {
@@ -19,21 +22,24 @@ router.get('/prices', async (req, res) => {
     }
 
     try {
-        const query = `Get the latest real-time market prices for "${crop}" in "${market}" APMC/market in India. 
-        Provide the data in a strict JSON format with the following fields:
+        const query = `Get the latest real-time market prices for "${crop}" in "${market}" APMC/market in India.
+        Also, find and include prices for at least 2 other NEAREST neighboring APMCs/markets to "${market}" for the same commodity.
+        For each market (the primary one and the 2 neighbors), find the historical modal price from yesterday.
+        Provide the data in a strict JSON array format, where each object has these fields:
         {
             "commodity": "string",
             "market": "string",
+            "is_primary": "boolean (true for ${market}, false for neighbors)",
             "state": "string",
             "district": "string",
             "min_price": "number",
             "max_price": "number",
             "modal_price": "number",
             "date": "string (YYYY-MM-DD)",
-            "trend": "string (up/down/stable)",
+            "historical_price_yesterday": "number",
             "source": "string"
         }
-        Return ONLY the JSON object.`;
+        Return ONLY the array of JSON objects.`;
 
         const response = await axios.post(
             'https://api.perplexity.ai/chat/completions',
@@ -59,14 +65,75 @@ router.get('/prices', async (req, res) => {
             }
         );
 
-        const content = response.data.choices[0].message.content;
-        // Extract JSON block if present
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const rawContent = response.data.choices[0].message.content;
+        const jsonMatch = rawContent.match(/\[[\s\S]*\]/);
+
         if (jsonMatch) {
-            const marketData = JSON.parse(jsonMatch[0]);
-            res.json(marketData);
+            let marketResults;
+            try {
+                marketResults = JSON.parse(jsonMatch[0]);
+            } catch (e) {
+                console.error('[MARKET API] JSON Parse Error:', e);
+                return res.status(500).json({ message: 'Error parsing market data list' });
+            }
+
+            const processedResults = await Promise.all(marketResults.map(async (rawData: any) => {
+                const currentData = {
+                    ...rawData,
+                    min_price: parseFloat(rawData.min_price) || 0,
+                    max_price: parseFloat(rawData.max_price) || 0,
+                    modal_price: parseFloat(rawData.modal_price) || 0,
+                    historical_price_yesterday: parseFloat(rawData.historical_price_yesterday) || 0
+                };
+
+                let currentDate = new Date(currentData.date);
+                if (isNaN(currentDate.getTime())) {
+                    currentDate = new Date();
+                }
+
+                // Store each market record
+                await MarketPrice.findOneAndUpdate(
+                    {
+                        commodity: currentData.commodity,
+                        market: currentData.market,
+                        date: {
+                            $gte: new Date(new Date(currentDate).setHours(0, 0, 0, 0)),
+                            $lt: new Date(new Date(currentDate).setHours(23, 59, 59, 999))
+                        }
+                    },
+                    { ...currentData, date: currentDate },
+                    { upsert: true, new: true }
+                );
+
+                // Fetch previous record from DB for this market
+                const dbPreviousPrice = await MarketPrice.findOne({
+                    commodity: currentData.commodity,
+                    market: currentData.market,
+                    date: { $lt: currentDate }
+                }).sort({ date: -1 });
+
+                const previousModalPrice = (dbPreviousPrice && dbPreviousPrice.modal_price > 0)
+                    ? dbPreviousPrice.modal_price
+                    : currentData.historical_price_yesterday;
+
+                let percentageChange = 0;
+                if (previousModalPrice && previousModalPrice > 0) {
+                    percentageChange = ((currentData.modal_price - previousModalPrice) / previousModalPrice) * 100;
+                }
+
+                return {
+                    ...currentData,
+                    previous_modal_price: previousModalPrice || null,
+                    previous_date: dbPreviousPrice ? dbPreviousPrice.date.toISOString().split('T')[0] : 'Yesterday/Previous',
+                    percentage_change: percentageChange.toFixed(2),
+                    actual_trend: percentageChange > 0 ? 'up' : percentageChange < 0 ? 'down' : 'stable'
+                };
+            }));
+
+            res.json(processedResults);
         } else {
-            res.status(500).json({ message: 'Failed to parse market data from AI response' });
+            console.error('[MARKET API] No array found in response:', rawContent);
+            res.status(500).json({ message: 'Failed to parse market data list' });
         }
     } catch (error: any) {
         console.error('Market API Error:', error.response?.data || error.message);

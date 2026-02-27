@@ -26,6 +26,7 @@ function cn(...inputs: ClassValue[]) {
 interface MarketData {
     commodity: string;
     market: string;
+    is_primary: boolean;
     state: string;
     district: string;
     min_price: number;
@@ -34,6 +35,10 @@ interface MarketData {
     date: string;
     trend: 'up' | 'down' | 'stable';
     source: string;
+    previous_modal_price?: number;
+    previous_date?: string;
+    percentage_change?: string;
+    actual_trend?: 'up' | 'down' | 'stable';
 }
 
 const ALL_COMMODITIES = [
@@ -106,7 +111,7 @@ export default function MarketPage() {
     const [searchMarket, setSearchMarket] = useState(() => localStorage.getItem('market_location') || 'Guntur');
     const [selectedCrop, setSelectedCrop] = useState(() => localStorage.getItem('market_selectedCrop') || '');
     const [cropSearch, setCropSearch] = useState('');
-    const [marketData, setMarketData] = useState<MarketData | null>(null);
+    const [marketData, setMarketData] = useState<MarketData[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -120,19 +125,25 @@ export default function MarketPage() {
 
     const fetchMarketPrices = async (crop: string, market: string) => {
         if (!crop) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('Please log in to see market prices');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
-        setMarketData(null); // Clear previous data
+        setMarketData(null);
         try {
-            const response = await fetch(`/api/market/prices?crop=${encodeURIComponent(crop)}&market=${encodeURIComponent(market || 'India')}`);
+            const response = await fetch(`/api/market/prices?crop=${encodeURIComponent(crop)}&market=${encodeURIComponent(market || 'India')}`, {
+                headers: { 'x-auth-token': token }
+            });
             if (!response.ok) throw new Error('Failed to connect to market node');
 
             const data = await response.json();
 
-            // Validate that we actually got valid price data
-            // If modal_price is missing, 0, or not a valid number, we treat it as "No APMs available"
-            const modalPrice = parseFloat(data.modal_price);
-            if (!data || isNaN(modalPrice) || modalPrice === 0) {
+            if (!Array.isArray(data) || data.length === 0) {
                 throw new Error('NO APMS are available at that location');
             }
 
@@ -152,6 +163,10 @@ export default function MarketPage() {
     useEffect(() => {
         if (searchMarket) localStorage.setItem('market_location', searchMarket);
     }, [searchMarket]);
+
+    const primaryMarket = marketData && marketData.length > 0
+        ? (marketData.find(m => m.is_primary) || marketData[0])
+        : null;
 
     // Auto-fetch on mount if a crop was previously selected
     useEffect(() => {
@@ -299,7 +314,7 @@ export default function MarketPage() {
                                         TRY AGAIN
                                     </button>
                                 </motion.div>
-                            ) : marketData ? (
+                            ) : primaryMarket ? (
                                 <motion.div
                                     key="data"
                                     initial={{ opacity: 0, y: 20 }}
@@ -310,22 +325,26 @@ export default function MarketPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <PriceStat
                                             label="Modal Price"
-                                            price={marketData.modal_price}
-                                            sub={`Avg. price for ${marketData.commodity}`}
-                                            trend={marketData.trend}
+                                            price={primaryMarket.modal_price}
+                                            sub={primaryMarket.previous_modal_price
+                                                ? `Was ₹${primaryMarket.previous_modal_price} on ${new Date(primaryMarket.previous_date!).toLocaleDateString()}`
+                                                : `Avg. price for ${primaryMarket.commodity}`
+                                            }
+                                            trend={primaryMarket.actual_trend || primaryMarket.trend}
+                                            percentage={primaryMarket.percentage_change}
                                             icon={<BarChart3 className="text-blue-500" size={24} />}
                                             highlight
                                         />
                                         <PriceStat
                                             label="Min Price"
-                                            price={marketData.min_price}
+                                            price={primaryMarket.min_price}
                                             sub="Lowest recorded today"
                                             trend="stable"
                                             icon={<ArrowDown className="text-red-400" size={24} />}
                                         />
                                         <PriceStat
                                             label="Max Price"
-                                            price={marketData.max_price}
+                                            price={primaryMarket.max_price}
                                             sub="Highest recorded today"
                                             trend="up"
                                             icon={<ArrowUp className="text-[#00ab55]" size={24} />}
@@ -333,52 +352,80 @@ export default function MarketPage() {
                                     </div>
 
                                     {/* Market Details Card */}
-                                    <div className="bg-white rounded-[40px] p-10 border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col md:flex-row gap-10 items-center">
-                                        <div className="w-full md:w-1/3 space-y-6">
-                                            <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Selected Market</p>
-                                                <h3 className="text-3xl font-bold text-[#0a2635] tracking-tight">{marketData.market}</h3>
-                                            </div>
-                                            <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                                                <MapPin className="text-gray-400" size={20} />
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Location</p>
-                                                    <p className="text-sm font-bold text-gray-700">{marketData.district}, {marketData.state}</p>
+                                    <div className="flex flex-col lg:flex-row gap-8">
+                                        <div className="flex-1 bg-white rounded-[40px] p-10 border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col md:flex-row gap-10 items-center">
+                                            <div className="w-full md:w-1/3 space-y-6">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Selected Market</p>
+                                                    <h3 className="text-3xl font-bold text-[#0a2635] tracking-tight">{primaryMarket.market}</h3>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                                    <MapPin className="text-gray-400" size={20} />
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Location</p>
+                                                        <p className="text-sm font-bold text-gray-700">{primaryMarket.district}, {primaryMarket.state}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                                                    <Calendar className="text-gray-400" size={20} />
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Last Update</p>
+                                                        <p className="text-sm font-bold text-gray-700">{new Date(primaryMarket.date).toLocaleDateString()}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                                                <Calendar className="text-gray-400" size={20} />
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Last Update</p>
-                                                    <p className="text-sm font-bold text-gray-700">{new Date(marketData.date).toLocaleDateString()}</p>
+
+                                            <div className="flex-1 w-full bg-[#f8fafb] rounded-[32px] p-8 border border-gray-100 relative overflow-hidden group">
+                                                <div className="absolute top-4 right-8 flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-[#00ab55] animate-pulse" />
+                                                    <span className="text-[10px] font-black text-[#00ab55] uppercase tracking-widest">LIVE DATA</span>
                                                 </div>
+
+                                                <h4 className="text-lg font-bold text-[#0a2635] mb-8">Quick Suggestions</h4>
+
+                                                <div className="space-y-4">
+                                                    <SuggestionItem
+                                                        text={primaryMarket.trend === 'up' || primaryMarket.actual_trend === 'up'
+                                                            ? `Prices for ${selectedCrop} are trending upwards. Good time for liquidation.`
+                                                            : `Stability observed in ${selectedCrop} prices. Monitor for next 48 hours.`
+                                                        }
+                                                    />
+                                                    <SuggestionItem
+                                                        text={`The price gap between min/max is ${primaryMarket.max_price - primaryMarket.min_price} ₹. Grade quality is key.`}
+                                                    />
+                                                </div>
+
+                                                <button className="mt-8 w-full py-4 bg-white text-[#0a2635] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0a2635] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:shadow-md">
+                                                    DOWNLOAD FULL MARKET REPORT <ArrowUpRight size={14} />
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 w-full bg-[#f8fafb] rounded-[32px] p-8 border border-gray-100 relative overflow-hidden group">
-                                            <div className="absolute top-4 right-8 flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-[#00ab55] animate-pulse" />
-                                                <span className="text-[10px] font-black text-[#00ab55] uppercase tracking-widest">LIVE DATA</span>
+                                        {/* Nearby Markets Side Panel */}
+                                        {marketData.length > 1 && (
+                                            <div className="w-full lg:w-80 bg-white rounded-[40px] p-8 border border-gray-100 shadow-xl shadow-gray-200/50">
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">Nearby Markets</h4>
+                                                <div className="space-y-4">
+                                                    {marketData.filter(m => !m.is_primary).map((m, i) => (
+                                                        <div key={i} className="p-4 rounded-[24px] bg-gray-50 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-100 group">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <p className="text-sm font-bold text-[#0a2635] leading-tight">{m.market}</p>
+                                                                <span className={cn(
+                                                                    "text-[8px] font-black px-1.5 py-0.5 rounded-full",
+                                                                    parseFloat(m.percentage_change || '0') >= 0 ? "bg-[#00ab55]/10 text-[#00ab55]" : "bg-red-50 text-red-500"
+                                                                )}>
+                                                                    {parseFloat(m.percentage_change || '0') >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(m.percentage_change || '0'))}%
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between items-end">
+                                                                <p className="text-[10px] text-gray-400 font-medium">{m.district}</p>
+                                                                <p className="text-lg font-black text-[#00ab55]">₹{m.modal_price}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-
-                                            <h4 className="text-lg font-bold text-[#0a2635] mb-8">Quick Suggestions</h4>
-
-                                            <div className="space-y-4">
-                                                <SuggestionItem
-                                                    text={marketData.trend === 'up'
-                                                        ? `Prices for ${selectedCrop} are trending upwards. Good time for liquidation.`
-                                                        : `Stability observed in ${selectedCrop} prices. Monitor for next 48 hours.`
-                                                    }
-                                                />
-                                                <SuggestionItem
-                                                    text={`The price gap between min/max is ${marketData.max_price - marketData.min_price} ₹. Grade quality is key.`}
-                                                />
-                                            </div>
-
-                                            <button className="mt-8 w-full py-4 bg-white text-[#0a2635] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#0a2635] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2 group-hover:shadow-md">
-                                                DOWNLOAD FULL MARKET REPORT <ArrowUpRight size={14} />
-                                            </button>
-                                        </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             ) : (
@@ -405,7 +452,7 @@ export default function MarketPage() {
     );
 }
 
-function PriceStat({ label, price, sub, trend, icon, highlight }: any) {
+function PriceStat({ label, price, sub, trend, percentage, icon, highlight }: any) {
     return (
         <div className={cn(
             "p-8 rounded-[40px] border transition-all hover:scale-[1.02] relative group overflow-hidden",
@@ -420,16 +467,22 @@ function PriceStat({ label, price, sub, trend, icon, highlight }: any) {
                 <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
                     {icon}
                 </div>
-                {trend === 'up' && (
+                {(trend === 'up' || (percentage && parseFloat(percentage) > 0)) && (
                     <div className="flex items-center gap-1 px-3 py-1 bg-[#00ab55]/10 text-[#00ab55] rounded-full">
                         <TrendingUp size={12} />
-                        <span className="text-[10px] font-black">+1.2%</span>
+                        <span className="text-[10px] font-black">{percentage ? (parseFloat(percentage) > 0 ? `+${percentage}%` : `${percentage}%`) : '+1.2%'}</span>
                     </div>
                 )}
-                {trend === 'down' && (
+                {(trend === 'down' || (percentage && parseFloat(percentage) < 0)) && (
                     <div className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-500 rounded-full">
                         <TrendingDown size={12} />
-                        <span className="text-[10px] font-black">-0.8%</span>
+                        <span className="text-[10px] font-black">{percentage ? `${percentage}%` : '-0.8%'}</span>
+                    </div>
+                )}
+                {trend === 'stable' && percentage === '0.00' && (
+                    <div className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-400 rounded-full">
+                        <Minus size={12} />
+                        <span className="text-[10px] font-black">0.0%</span>
                     </div>
                 )}
             </div>
