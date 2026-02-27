@@ -124,6 +124,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
 
   const [isLogin, setIsLogin] = useState(true);
   const [phase, setPhase] = useState(1);
+  const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
   const [formData, setFormData] = useState({
     mobile: '',
     password: '',
@@ -250,22 +251,25 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       console.log('Response data:', data);
 
       if (response.ok) {
-        alert('Registration successful! Please login with your credentials.');
-        setIsLogin(true);
-        setPhase(1);
-        setFormData({
-          mobile: '',
-          password: '',
-          firstName: '',
-          lastName: '',
-          age: '',
-          state: '',
-          district: '',
-          mandal: '',
-          cropName: '',
-          startDate: '',
-          endDate: '',
-        });
+        setIsRegistrationSuccess(true);
+        setTimeout(() => {
+          setIsRegistrationSuccess(false);
+          setIsLogin(true);
+          setPhase(1);
+          setFormData({
+            mobile: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            age: '',
+            state: '',
+            district: '',
+            mandal: '',
+            cropName: '',
+            startDate: '',
+            endDate: '',
+          });
+        }, 3000);
       } else {
         alert(data.message || 'Registration failed. Please try again.');
       }
@@ -364,223 +368,264 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
             exit={{ opacity: 0, x: -20 }}
             className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-lg border border-white/20 rounded-[40px] p-8 md:p-12 shadow-2xl max-h-[95vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
-            <div className="flex items-center justify-between mb-10">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <Sprout className="text-white" size={24} />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-white">Register</h2>
-                  <p className="text-white/50 text-xs">Join AgriSmart AI today</p>
-                </div>
-              </div>
-              <button onClick={() => setIsLogin(true)} className="text-gray-400 hover:text-white transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between mb-12 relative">
-              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/10 -translate-y-1/2 z-0" />
-              {[1, 2, 3].map((s) => (
-                <div key={s} className="relative z-10 flex flex-col items-center gap-2">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${phase >= s ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white/10 text-white/30'}`}>
-                    {phase > s ? <CheckCircle2 size={20} /> : s}
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${phase >= s ? 'text-white' : 'text-white/30'}`}>
-                    {s === 1 ? 'Account' : s === 2 ? 'Profile' : 'Agriculture'}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-              {phase === 1 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Mobile Number</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="tel"
-                        name="mobile"
-                        value={formData.mobile}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="Enter mobile number"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Create Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="Choose a strong password"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {phase === 2 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">First Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="John"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Last Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="Doe"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Age</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="number"
-                        name="age"
-                        value={formData.age}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="Enter your age"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {phase === 3 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                  <div className="space-y-4">
-                    <SearchableSelect
-                      label="State"
-                      value={formData.state}
-                      onChange={(val) => {
-                        setFormData(prev => ({ ...prev, state: val, district: '', mandal: '' }));
-                      }}
-                      options={LOCATION_DATA.map(s => s.name)}
-                      placeholder="Select State"
-                    />
-                    <SearchableSelect
-                      label="District"
-                      value={formData.district}
-                      onChange={(val) => {
-                        setFormData(prev => ({ ...prev, district: val, mandal: '' }));
-                      }}
-                      options={formData.state ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.map(d => d.name) || []) : []}
-                      disabled={!formData.state}
-                      placeholder="Select District"
-                    />
-                    <SearchableSelect
-                      label="Mandal"
-                      value={formData.mandal}
-                      onChange={(val) => {
-                        setFormData(prev => ({ ...prev, mandal: val }));
-                      }}
-                      options={
-                        (formData.state && formData.district)
-                          ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.find(d => d.name === formData.district)?.blockList || [])
-                          : []
-                      }
-                      disabled={!formData.district}
-                      placeholder="Select Mandal"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Crop Name</label>
-                    <div className="relative">
-                      <Sprout className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                        type="text"
-                        name="cropName"
-                        value={formData.cropName}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                        placeholder="e.g. Paddy, Cotton"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Start Date</label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">End Date</label>
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleInputChange}
-                        className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                </motion.div>
-              )}
-
-              <div className="flex gap-4 pt-6">
-                {phase > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setPhase(phase - 1)}
-                    className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-                  >
-                    <ChevronLeft size={20} />
-                    Back
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (phase < 3) {
-                      setPhase(phase + 1);
-                    } else {
-                      console.log('Complete Registration button clicked');
-                      handleRegister();
-                    }
-                  }}
-                  className="flex-[2] bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20"
+            {isRegistrationSuccess ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-8 min-h-[400px]">
+                <motion.div
+                  initial={{ opacity: 0.2, scale: 0.8, filter: "grayscale(100%)" }}
+                  animate={{ opacity: 1, scale: 1.2, filter: "grayscale(0%)" }}
+                  transition={{ duration: 2, ease: "easeOut" }}
+                  className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.4)] relative"
                 >
-                  {phase === 3 ? 'Complete Registration' : 'Next Step'}
-                  <ArrowRight size={20} />
-                </button>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 1, type: "spring" }}
+                    className="absolute -top-2 -right-2 bg-white text-primary rounded-full p-1 shadow-lg"
+                  >
+                    <CheckCircle2 size={24} className="fill-white" />
+                  </motion.div>
+                  <Sprout className="text-primary" size={64} />
+                </motion.div>
+                <div className="text-center space-y-3">
+                  <motion.h3
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 }}
+                    className="text-3xl font-bold text-white tracking-tight"
+                  >
+                    Registration<br />Successful!
+                  </motion.h3>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2 }}
+                    className="text-white/60 text-sm"
+                  >
+                    Your account is now growing with us.
+                  </motion.p>
+                </div>
               </div>
-            </form>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                      <Sprout className="text-white" size={24} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Register</h2>
+                      <p className="text-white/50 text-xs">Join AgriSmart AI today</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsLogin(true)} className="text-gray-400 hover:text-white transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between mb-12 relative">
+                  <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/10 -translate-y-1/2 z-0" />
+                  {[1, 2, 3].map((s) => (
+                    <div key={s} className="relative z-10 flex flex-col items-center gap-2">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${phase >= s ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white/10 text-white/30'}`}>
+                        {phase > s ? <CheckCircle2 size={20} /> : s}
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${phase >= s ? 'text-white' : 'text-white/30'}`}>
+                        {s === 1 ? 'Account' : s === 2 ? 'Profile' : 'Agriculture'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+                  {phase === 1 && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Mobile Number</label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="tel"
+                            name="mobile"
+                            value={formData.mobile}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="Enter mobile number"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Create Password</label>
+                        <div className="relative">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="Choose a strong password"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {phase === 2 && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">First Name</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="text"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="John"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Last Name</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="text"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="Doe"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Age</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="number"
+                            name="age"
+                            value={formData.age}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="Enter your age"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {phase === 3 && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                      <div className="space-y-4">
+                        <SearchableSelect
+                          label="State"
+                          value={formData.state}
+                          onChange={(val) => {
+                            setFormData(prev => ({ ...prev, state: val, district: '', mandal: '' }));
+                          }}
+                          options={LOCATION_DATA.map(s => s.name)}
+                          placeholder="Select State"
+                        />
+                        <SearchableSelect
+                          label="District"
+                          value={formData.district}
+                          onChange={(val) => {
+                            setFormData(prev => ({ ...prev, district: val, mandal: '' }));
+                          }}
+                          options={formData.state ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.map(d => d.name) || []) : []}
+                          disabled={!formData.state}
+                          placeholder="Select District"
+                        />
+                        <SearchableSelect
+                          label="Mandal"
+                          value={formData.mandal}
+                          onChange={(val) => {
+                            setFormData(prev => ({ ...prev, mandal: val }));
+                          }}
+                          options={
+                            (formData.state && formData.district)
+                              ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.find(d => d.name === formData.district)?.blockList || [])
+                              : []
+                          }
+                          disabled={!formData.district}
+                          placeholder="Select Mandal"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Crop Name</label>
+                        <div className="relative">
+                          <Sprout className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                          <input
+                            type="text"
+                            name="cropName"
+                            value={formData.cropName}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            placeholder="e.g. Paddy, Cotton"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Start Date</label>
+                          <input
+                            type="date"
+                            name="startDate"
+                            value={formData.startDate}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">End Date</label>
+                          <input
+                            type="date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={handleInputChange}
+                            className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                          />
+                        </div>
+                      </div>
+
+                    </motion.div>
+                  )}
+
+                  <div className="flex gap-4 pt-6">
+                    {phase > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setPhase(phase - 1)}
+                        className="flex-1 bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                      >
+                        <ChevronLeft size={20} />
+                        Back
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (phase < 3) {
+                          setPhase(phase + 1);
+                        } else {
+                          console.log('Complete Registration button clicked');
+                          handleRegister();
+                        }
+                      }}
+                      className="flex-[2] bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20"
+                    >
+                      {phase === 3 ? 'Complete Registration' : 'Next Step'}
+                      <ArrowRight size={20} />
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
