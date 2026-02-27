@@ -506,7 +506,11 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const response = await getPerplexityAdvice(userMsg, i18n.language || 'en');
+      let response = await getPerplexityAdvice(userMsg, i18n.language || 'en');
+      // Failsafe: Remove citation brackets [1], [2], etc.
+      if (response) {
+        response = response.replace(/\[\d+\]/g, '').trim();
+      }
       setChatMessages(prev => [...prev, { role: 'ai', content: response || "I'm sorry, I couldn't process that." }]);
     } catch (error) {
       setChatMessages(prev => [...prev, { role: 'ai', content: "Error communicating with AI assistant." }]);

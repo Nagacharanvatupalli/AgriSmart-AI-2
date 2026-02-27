@@ -8,6 +8,8 @@ interface IMarketPrice extends Document {
     min_price: number;
     max_price: number;
     modal_price: number;
+    yesterday_modal_price?: number;
+    is_primary_cache?: boolean;
     date: Date;
     source: string;
 }
@@ -20,6 +22,8 @@ const MarketPriceSchema = new mongoose.Schema({
     min_price: { type: Number },
     max_price: { type: Number },
     modal_price: { type: Number },
+    yesterday_modal_price: { type: Number },
+    is_primary_cache: { type: Boolean },
     date: { type: Date, required: true },
     source: { type: String },
 }, { timestamps: true });

@@ -34,7 +34,7 @@ export const getPerplexityAdvice = async (query: string, language = 'en') => {
                 messages: [
                     {
                         role: 'system',
-                        content: `You are an expert agricultural consultant. Provide practical, sustainable, and scientifically-backed advice to farmers. Use your search capabilities to provide the most up-to-date information on weather patterns, market prices, and pest outbreaks. Keep responses concise and actionable. Respond in ${languageName}.`
+                        content: `You are an expert agricultural consultant. Give "gunshot" answers—short, direct, and actionable. EXTREME BREVITY IS REQUIRED. If the user asks for a price, return ONLY the price or a very short sentence. DO NOT include citations, footnotes, or bracketed numbers like [1], [2], etc. Respond in ${languageName}.`
                     },
                     {
                         role: 'user',
@@ -71,7 +71,7 @@ export const detectCropDisease = async (base64Image: string, mimeType: string, l
     try {
         const languageName = LANG_NAME[language] || 'English';
 
-        const systemText = `You are an elite agricultural pathologist. Analyze this crop image. Identify the plant, detect any diseases, pests, or nutrient deficiencies. Provide a precise diagnosis and a detailed, actionable treatment plan. Use your search capabilities to verify the latest and most effective sustainable treatments. Format the response in professional Markdown with clear headings. Respond in ${languageName}.`;
+        const systemText = `You are an elite agricultural pathologist. Analyze this crop image. Identify the plant and detect diseases/pests. Provide a direct diagnosis and a short, actionable treatment plan. BE CONCISE. Use clear headings. DO NOT include citations or bracketed numbers. Respond in ${languageName}.`;
 
         const response = await axios.post(
             'https://api.perplexity.ai/chat/completions',
