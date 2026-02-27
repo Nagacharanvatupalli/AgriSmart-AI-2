@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -134,9 +134,14 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
   const [mobileOtpVerified, setMobileOtpVerified] = useState(false);
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtpVerified, setEmailOtpVerified] = useState(false);
+  const [isSendingEmailOtp, setIsSendingEmailOtp] = useState(false);
+  const [isVerifyingEmailOtp, setIsVerifyingEmailOtp] = useState(false);
+  const [isVerifyingMobileOtp, setIsVerifyingMobileOtp] = useState(false);
+  const [isSendingMobileOtp, setIsSendingMobileOtp] = useState(false);
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
+  const [isSendingLoginOtp, setIsSendingLoginOtp] = useState(false);
   const [formData, setFormData] = useState({
     mobile: '',
-    password: '',
     email: '',
     mobileOtp: '',
     emailOtp: '',
@@ -152,6 +157,22 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (formData.mobileOtp.length === 6 && !mobileOtpVerified && !isVerifyingMobileOtp && !isLogin) {
+      handleVerifyMobileOtp();
+    }
+    // Auto-verify login OTP
+    if (formData.mobileOtp.length === 6 && isLogin && loginOtpSent) {
+      handleLogin(new Event('submit') as any);
+    }
+  }, [formData.mobileOtp]);
+
+  useEffect(() => {
+    if (formData.emailOtp.length === 6 && !emailOtpVerified && !isVerifyingEmailOtp) {
+      handleVerifyEmailOtp();
+    }
+  }, [formData.emailOtp]);
 
   const handleAddCrop = (crop: string) => {
     if (!formData.selectedCrops.includes(crop)) {
@@ -169,66 +190,171 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
     }));
   };
 
-  const handleSendMobileOtp = async () => {
+  const handleSendMobileOtp = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     if (!formData.mobile || formData.mobile.length < 10) {
-      addToast('Please enter a valid mobile number', 'error');
+      addToast('Please enter a valid 10-digit mobile number', 'error');
       return;
     }
-    // In production, call your SMS API here
-    console.log('Sending OTP to mobile:', formData.mobile);
-    setMobileOtpSent(true);
-    addToast('OTP sent to your mobile number', 'success');
+    setIsSendingMobileOtp(true);
+    try {
+      const response = await fetch('/api/auth/send-mobile-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile }),
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch { }
+      if (response.ok) {
+        setMobileOtpSent(true);
+        addToast(data.message || 'OTP sent to your mobile number', 'success');
+      } else {
+        addToast(data.message || 'Failed to send SMS OTP. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Send mobile OTP error:', error);
+      addToast('Network error. Please check your connection.', 'error');
+    } finally {
+      setIsSendingMobileOtp(false);
+    }
   };
 
-  const handleVerifyMobileOtp = () => {
+  const handleVerifyMobileOtp = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     if (!formData.mobileOtp || formData.mobileOtp.length < 4) {
-      addToast('Please enter a valid OTP', 'error');
+      addToast('Please enter the OTP sent to your phone', 'error');
       return;
     }
-    // In production, verify with backend
-    console.log('Verifying mobile OTP:', formData.mobileOtp);
-    setMobileOtpVerified(true);
-    addToast('Mobile number verified successfully', 'success');
+    setIsVerifyingMobileOtp(true);
+    try {
+      const response = await fetch('/api/auth/verify-mobile-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile, otp: formData.mobileOtp }),
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch { }
+      if (response.ok && data.success) {
+        setMobileOtpVerified(true);
+        addToast('Mobile number verified successfully! ✅', 'success');
+      } else {
+        addToast(data.message || 'Invalid OTP. Please check and try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Verify mobile OTP error:', error);
+      addToast('Network error during verification.', 'error');
+    } finally {
+      setIsVerifyingMobileOtp(false);
+    }
   };
 
-  const handleSendEmailOtp = async () => {
+  const handleSendEmailOtp = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     if (!formData.email || !formData.email.includes('@')) {
       addToast('Please enter a valid email address', 'error');
       return;
     }
-    // In production, call your Email API here
-    console.log('Sending OTP to email:', formData.email);
-    setEmailOtpSent(true);
-    addToast('OTP sent to your email', 'success');
+    setIsSendingEmailOtp(true);
+    try {
+      const response = await fetch('/api/auth/send-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch { /* non-JSON body */ }
+      if (response.ok) {
+        setEmailOtpSent(true);
+        addToast(data.message || 'OTP sent to your email', 'success');
+      } else {
+        addToast(data.message || 'Failed to send OTP. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Send email OTP error:', error);
+      addToast('Network error. Please check your connection and try again.', 'error');
+    } finally {
+      setIsSendingEmailOtp(false);
+    }
   };
 
-  const handleVerifyEmailOtp = () => {
-    if (!formData.emailOtp || formData.emailOtp.length < 4) {
-      addToast('Please enter a valid OTP', 'error');
+  const handleVerifyEmailOtp = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    if (!formData.emailOtp || formData.emailOtp.length < 6) {
+      addToast('Please enter the 6-digit OTP sent to your email', 'error');
       return;
     }
-    // In production, verify with backend
-    console.log('Verifying email OTP:', formData.emailOtp);
-    setEmailOtpVerified(true);
-    addToast('Email verified successfully', 'success');
+    setIsVerifyingEmailOtp(true);
+    try {
+      const response = await fetch('/api/auth/verify-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp: formData.emailOtp }),
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch { /* non-JSON body */ }
+      if (response.ok && data.success) {
+        setEmailOtpVerified(true);
+        addToast('Email verified successfully! ✅', 'success');
+      } else {
+        addToast(data.message || 'Invalid OTP. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Verify email OTP error:', error);
+      addToast('Network error. Please check your connection and try again.', 'error');
+    } finally {
+      setIsVerifyingEmailOtp(false);
+    }
+  };
+
+
+  const handleSendLoginOtp = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    if (!formData.mobile || formData.mobile.length < 10) {
+      addToast('Please enter a valid mobile number', 'error');
+      return;
+    }
+    setIsSendingLoginOtp(true);
+    try {
+      const response = await fetch('/api/auth/send-mobile-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile }),
+      });
+      let data: any = {};
+      try { data = await response.json(); } catch { }
+      if (response.ok) {
+        setLoginOtpSent(true);
+        addToast('Login OTP sent to your mobile', 'success');
+      } else {
+        addToast(data.message || 'Failed to send login OTP', 'error');
+      }
+    } catch (error) {
+      console.error('Send login OTP error:', error);
+      addToast('Network error', 'error');
+    } finally {
+      setIsSendingLoginOtp(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.mobile || !formData.mobileOtp) {
+      addToast('Mobile and OTP are required', 'error');
+      return;
+    }
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: formData.mobile, password: formData.password }),
+        body: JSON.stringify({ mobile: formData.mobile, otp: formData.mobileOtp }),
       });
+      const data = await response.json();
       if (response.ok) {
-        const data = await response.json();
         localStorage.setItem('token', data.token);
 
-        // Special Admin Redirection
-        if (formData.mobile === '7893439082' && formData.password === 'charan123') {
-          navigate('/admin-dashboard');
-          return;
+        // Special Admin Redirection (updated for OTP logic)
+        if (formData.mobile === '7893439082' && formData.mobileOtp === '123456') {
+          // Optional: Handle hardcoded debug OTP if needed, otherwise normal flow
         }
 
         const firstName = data.user?.profile?.firstName || '';
@@ -240,7 +366,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
         localStorage.setItem('userLocation', userLocation);
         onAuthSuccess(fullName, data.user);
       } else {
-        addToast('Login failed. Please check your credentials.', 'error');
+        addToast(data.message || 'Login failed. Invalid OTP or number.', 'error');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -255,23 +381,18 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
     console.log('Form Data:', formData);
 
     // Validation
-    if (!formData.mobile || !formData.password) {
-      addToast('Mobile number and password are required', 'error');
+    if (!formData.mobile && !formData.email) {
+      addToast('Mobile number or Email is required', 'error');
       return;
     }
 
-    if (!mobileOtpVerified || !emailOtpVerified) {
-      addToast('Please verify both mobile and email before registering', 'error');
+    if (!mobileOtpVerified && !emailOtpVerified) {
+      addToast('Please verify either your mobile number or email before registering', 'error');
       return;
     }
 
-    if (formData.password.length < 6) {
-      addToast('Password must be at least 6 characters long', 'error');
-      return;
-    }
-
-    if (!formData.firstName || !formData.lastName) {
-      addToast('First name and last name are required', 'error');
+    if (!formData.firstName || !formData.lastName || !formData.age) {
+      addToast('First name, last name, and age are required', 'error');
       return;
     }
 
@@ -290,7 +411,6 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       const payload = {
         mobile: formData.mobile,
         email: formData.email,
-        password: formData.password,
         profile: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -332,7 +452,6 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
           setEmailOtpVerified(false);
           setFormData({
             mobile: '',
-            password: '',
             email: '',
             mobileOtp: '',
             emailOtp: '',
@@ -384,47 +503,50 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Mobile Number</label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="tel"
-                    name="mobile"
-                    required
-                    value={formData.mobile}
-                    onChange={handleInputChange}
-                    className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="Enter mobile number"
-                  />
+                <div className="flex gap-3">
+                  <div className="flex-1 relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleInputChange}
+                      className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                      placeholder="Enter mobile number"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSendLoginOtp}
+                    disabled={isSendingLoginOtp}
+                    className="px-6 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {isSendingLoginOtp ? 'Sending…' : loginOtpSent ? 'Resend' : 'Send OTP'}
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="Enter password"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex items-center gap-2 text-white/60 cursor-pointer">
-                  <input type="checkbox" className="rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50" />
-                  Remember Me
-                </label>
-                <button type="button" className="text-primary font-bold hover:underline">Forgot Password?</button>
-              </div>
+              {loginOtpSent && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Enter OTP</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="mobileOtp"
+                      value={formData.mobileOtp}
+                      onChange={handleInputChange}
+                      maxLength={6}
+                      className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-center"
+                      placeholder="000000"
+                    />
+                  </div>
+                </motion.div>
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20"
+                disabled={!loginOtpSent}
+                className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20 disabled:opacity-60"
               >
                 Login
               </button>
@@ -492,7 +614,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                       <p className="text-white/50 text-xs">Join AgriSmart AI today</p>
                     </div>
                   </div>
-                  <button onClick={() => setIsLogin(true)} className="text-gray-400 hover:text-white transition-colors">
+                  <button type="button" onClick={() => setIsLogin(true)} className="text-gray-400 hover:text-white transition-colors">
                     <X size={24} />
                   </button>
                 </div>
@@ -502,7 +624,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                   {[1, 2, 3].map((s) => (
                     <div key={s} className="relative z-10 flex flex-col items-center gap-2">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${phase >= s ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white/10 text-white/30'}`}>
-                        {(s === 1 && (mobileOtpVerified && emailOtpVerified)) || (phase > s) ? <CheckCircle2 size={20} /> : s}
+                        {(s === 1 && mobileOtpVerified) || (phase > s) ? <CheckCircle2 size={20} /> : s}
                       </div>
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${phase >= s ? 'text-white' : 'text-white/30'}`}>
                         {s === 1 ? 'Verify' : s === 2 ? 'Profile' : 'Crops'}
@@ -533,10 +655,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                           <button
                             type="button"
                             onClick={handleSendMobileOtp}
-                            disabled={mobileOtpVerified}
+                            disabled={mobileOtpVerified || isSendingMobileOtp}
                             className="px-6 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-60 whitespace-nowrap"
                           >
-                            {mobileOtpVerified ? 'Verified' : 'Send OTP'}
+                            {isSendingMobileOtp ? 'Sending…' : mobileOtpVerified ? 'Verified ✓' : mobileOtpSent ? 'Resend OTP' : 'Send OTP'}
                           </button>
                         </div>
                       </div>
@@ -558,9 +680,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                             <button
                               type="button"
                               onClick={handleVerifyMobileOtp}
-                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all whitespace-nowrap"
+                              disabled={isVerifyingMobileOtp}
+                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all disabled:opacity-60 whitespace-nowrap"
                             >
-                              Verify
+                              {isVerifyingMobileOtp ? 'Verifying…' : 'Verify'}
                             </button>
                           </div>
                         </motion.div>
@@ -577,7 +700,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                               name="email"
                               value={formData.email}
                               onChange={handleInputChange}
-                              disabled={emailOtpVerified || !mobileOtpVerified}
+                              disabled={emailOtpVerified}
                               className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-60"
                               placeholder="Enter email address"
                             />
@@ -585,10 +708,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                           <button
                             type="button"
                             onClick={handleSendEmailOtp}
-                            disabled={emailOtpVerified || !mobileOtpVerified}
+                            disabled={emailOtpVerified || isSendingEmailOtp}
                             className="px-6 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-60 whitespace-nowrap"
                           >
-                            {emailOtpVerified ? 'Verified' : 'Send OTP'}
+                            {isSendingEmailOtp ? 'Sending…' : emailOtpVerified ? 'Verified ✓' : emailOtpSent ? 'Resend OTP' : 'Send OTP'}
                           </button>
                         </div>
                       </div>
@@ -610,30 +733,15 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                             <button
                               type="button"
                               onClick={handleVerifyEmailOtp}
-                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all whitespace-nowrap"
+                              disabled={isVerifyingEmailOtp}
+                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all disabled:opacity-60 whitespace-nowrap"
                             >
-                              Verify
+                              {isVerifyingEmailOtp ? 'Verifying…' : 'Verify'}
                             </button>
                           </div>
                         </motion.div>
                       )}
 
-                      {/* Password */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Create Password</label>
-                        <div className="relative">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                          <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            disabled={!mobileOtpVerified || !emailOtpVerified}
-                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-60"
-                            placeholder="Choose a strong password"
-                          />
-                        </div>
-                      </div>
                     </motion.div>
                   )}
 
@@ -725,7 +833,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                       {/* Multi-Crop Selection */}
                       <div className="space-y-4">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Select Crops (Multiple)</label>
-                        
+
                         <CropDropdown
                           value=""
                           onChange={handleAddCrop}
@@ -801,12 +909,8 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                       type="button"
                       onClick={() => {
                         if (phase === 1) {
-                          if (!mobileOtpVerified || !emailOtpVerified) {
-                            addToast('Please verify both mobile and email before proceeding', 'error');
-                            return;
-                          }
-                          if (!formData.password) {
-                            addToast('Please enter a password', 'error');
+                          if (!mobileOtpVerified && !emailOtpVerified) {
+                            addToast('Please verify either mobile or email before proceeding', 'error');
                             return;
                           }
                           setPhase(2);
@@ -826,7 +930,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                         }
                       }}
                       className="flex-[2] bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 disabled:opacity-60"
-                      disabled={phase === 1 && (!mobileOtpVerified || !emailOtpVerified)}
+                      disabled={phase === 1 && !mobileOtpVerified && !emailOtpVerified}
                     >
                       {phase === 3 ? 'Complete Registration' : 'Next Step'}
                       <ArrowRight size={20} />

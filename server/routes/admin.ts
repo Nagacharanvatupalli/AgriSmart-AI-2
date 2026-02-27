@@ -8,9 +8,12 @@ dotenv.config();
 
 const router = express.Router();
 
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-    ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-    : null;
+function getTwilioClient() {
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+        return twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    }
+    return null;
+}
 
 const TWILIO_PHONE = process.env.TWILIO_PHONE_NUMBER;
 
@@ -103,9 +106,10 @@ router.post('/check-weather', async (req, res) => {
                 if (hoursSinceLast < 24) {
                     smsStatus = 'Throttled (Sent in last 24h)';
                 } else {
-                    if (twilioClient && TWILIO_PHONE) {
+                    const client = getTwilioClient();
+                    if (client && TWILIO_PHONE) {
                         try {
-                            await twilioClient.messages.create({
+                            await client.messages.create({
                                 body: msg,
                                 from: TWILIO_PHONE,
                                 to: user.mobile.startsWith('+') ? user.mobile : `+91${user.mobile}`

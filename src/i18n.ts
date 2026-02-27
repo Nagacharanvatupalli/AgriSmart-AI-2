@@ -199,7 +199,16 @@ const resources = {
                 "price_gap": "Price gap between Min/Max is ₹{{gap}}. Quality grade matters.",
                 "trend_up": "{{crop}} prices are on an upward trend. Good time to liquidate.",
                 "trend_stable": "Market shows stability in {{crop}} prices. Monitor for next 48 hours.",
-                "avg_price": "Avg. price for {{crop}}"
+                "avg_price": "Avg. price for {{crop}}",
+                "no_markets_found": "No markets found",
+                "no_data_title": "No Price Data Available",
+                "no_data_desc_1": "Price predictions for",
+                "no_data_desc_2": "are currently not available at",
+                "this_location": "this location",
+                "try_another_search": "Try searching for a different commodity or another market location.",
+                "try_again_btn": "TRY AGAIN",
+                "begin_search_title": "Begin Your Market Search",
+                "begin_search_desc": "Select a commodity from the sidebar to view live wholesale prices and historical trends across Indian markets."
             },
             "crops_page": {
                 "title": "Crop Encyclopedia",
@@ -605,7 +614,16 @@ const resources = {
                 "price_gap": "కనిష్ట/గరిష్ట మధ్య ధర వ్యత్యాసం ₹{{gap}}. నాణ్యత గ్రేడ్ ముఖ్యం.",
                 "trend_up": "{{crop}} ధరలు పెరుగుదల ధోరణిలో ఉన్నాయి. అమ్మకానికి ఇది మంచి సమయం.",
                 "trend_stable": "{{crop}} ధరలలో స్థిరత్వం కనిపిస్తోంది. తదుపరి 48 గంటల పాటు పర్యవేక్షించండి.",
-                "avg_price": "{{crop}}కు సగటు ధర"
+                "avg_price": "{{crop}}కు సగటు ధర",
+                "no_markets_found": "మార్కెట్లు కనుగొనబడలేదు",
+                "no_data_title": "ధరల సమాచారం అందుబాటులో లేదు",
+                "no_data_desc_1": "మీరు ఎంచుకున్న",
+                "no_data_desc_2": "కోసం ధర అంచనాలు ప్రస్తుతం",
+                "this_location": "ఈ స్థానంలో",
+                "try_another_search": "వేరే పంట లేదా మరో మార్కెట్ ప్రదేశం కోసం ముదికి శోధించండి.",
+                "try_again_btn": "మళ్ళీ ప్రయత్నించండి",
+                "begin_search_title": "మీ మార్కెట్ శోధనను ప్రారంభించండి",
+                "begin_search_desc": "భారతదేశ మార్కెట్లలో సజీవ హోల్‌సేల్ ధరలు మరియు చారిత్రక ధోరణులను చూడటానికి సైడ్‌బార్ నుండి ఒక పంటను ఎంచుకోండి."
             },
             "crops_page": {
                 "title": "పంటల ఎన్సైక్లోపీడియా",

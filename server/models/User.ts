@@ -22,9 +22,9 @@ interface IUser extends Document {
 }
 
 const UserSchema = new mongoose.Schema({
-  mobile: { type: String, required: true, unique: true },
+  mobile: { type: String, unique: true, sparse: true },
   email: { type: String },
-  password: { type: String, required: true },
+  password: { type: String },
   profile: {
     firstName: String,
     lastName: String,
