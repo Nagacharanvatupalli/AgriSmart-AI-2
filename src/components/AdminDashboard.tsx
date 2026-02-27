@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     const [results, setResults] = useState<Result[]>([]);
     const [lastCheck, setLastCheck] = useState<Date | null>(null);
     const [isChecking, setIsChecking] = useState(false);
-    const [countdown, setCountdown] = useState(5);
+    const [countdown, setCountdown] = useState(600);
 
     const checkWeather = async () => {
         setIsChecking(true);
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
             console.error('Check failed:', err);
         } finally {
             setIsChecking(false);
-            setCountdown(5);
+            setCountdown(600);
         }
     };
 
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
             setCountdown((prev) => {
                 if (prev <= 1) {
                     checkWeather();
-                    return 5;
+                    return 600;
                 }
                 return prev - 1;
             });
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
                                 ) : (
                                     <>
                                         <RefreshCw size={16} className="text-green-500" />
-                                        <span className="text-sm font-bold text-green-500">REFRESHING IN {countdown}s</span>
+                                        <span className="text-sm font-bold text-green-500">REFRESHING IN {Math.floor(countdown / 60)}m {countdown % 60}s</span>
                                     </>
                                 )}
                             </div>
