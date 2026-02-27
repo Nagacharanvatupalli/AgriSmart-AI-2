@@ -231,14 +231,6 @@ function WeatherCard({ label, value, icon, description, highlighted }: any) {
   );
 }
 
-// ── Protected Route Component ──────────────────────────────────────────────────
-function ProtectedRoute({ isLoggedIn, children }: { isLoggedIn: boolean, children: React.ReactNode }) {
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-}
-
 // ── Main App Component ────────────────────────────────────────────────────────
 
 export default function App() {
@@ -255,7 +247,7 @@ export default function App() {
   const [weatherData, setWeatherData] = useState<any>(null);
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => !!localStorage.getItem('token'));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [fullUser, setFullUser] = useState<any>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
@@ -533,57 +525,49 @@ export default function App() {
           navigate('/dashboard');
         }} />} />
         <Route path="/dashboard" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <DashboardPage
-              userName={userName}
-              onImageUpload={handleImageUpload}
-              fileInputRef={fileInputRef}
-              user={fullUser}
-              onUpdateProfile={updateProfile}
-              onAddCrop={addCrop}
-              onSelectCrop={selectCrop}
-              isLoading={isProfileLoading}
-            />
-          </ProtectedRoute>
+          <DashboardPage
+            userName={userName}
+            onImageUpload={handleImageUpload}
+            fileInputRef={fileInputRef}
+            user={fullUser}
+            onUpdateProfile={updateProfile}
+            onAddCrop={addCrop}
+            onSelectCrop={selectCrop}
+            isLoading={isProfileLoading}
+          />
         } />
         <Route path="/diagnosis" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <DiagnosisPage
-              selectedImage={selectedImage}
-              onImageUpload={handleImageUpload}
-              fileInputRef={fileInputRef}
-              isAnalyzing={isAnalyzing}
-              diagnosisResult={diagnosisResult}
-              onReset={() => { setSelectedImage(null); setDiagnosisResult(null); }}
-              isLoggedIn={isLoggedIn}
-            />
-          </ProtectedRoute>
+          <DiagnosisPage
+            selectedImage={selectedImage}
+            onImageUpload={handleImageUpload}
+            fileInputRef={fileInputRef}
+            isAnalyzing={isAnalyzing}
+            diagnosisResult={diagnosisResult}
+            onReset={() => { setSelectedImage(null); setDiagnosisResult(null); }}
+            isLoggedIn={isLoggedIn}
+          />
         } />
         <Route path="/assistant" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <AssistantPage
-              chatMessages={chatMessages}
-              userInput={userInput}
-              onUserInputChange={setUserInput}
-              onSendMessage={handleSendMessage}
-              isTyping={isTyping}
-              chatEndRef={chatEndRef}
-            />
-          </ProtectedRoute>
+          <AssistantPage
+            chatMessages={chatMessages}
+            userInput={userInput}
+            onUserInputChange={setUserInput}
+            onSendMessage={handleSendMessage}
+            isTyping={isTyping}
+            chatEndRef={chatEndRef}
+          />
         } />
         <Route path="/market" element={<MarketPage />} />
         <Route path="/crops" element={<CropsPage />} />
         <Route path="/weather" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <WeatherPage
-              location={location}
-              weatherData={weatherData}
-              isLoading={isWeatherLoading}
-              error={weatherError}
-              onRetry={fetchWeather}
-              onLocationChange={setLocation}
-            />
-          </ProtectedRoute>
+          <WeatherPage
+            location={location}
+            weatherData={weatherData}
+            isLoading={isWeatherLoading}
+            error={weatherError}
+            onRetry={fetchWeather}
+            onLocationChange={setLocation}
+          />
         } />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
