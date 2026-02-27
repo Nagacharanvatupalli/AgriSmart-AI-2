@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 
 interface IUser extends Document {
   mobile: string;
+  email?: string;
   password: string;
   profile: {
     firstName: string;
@@ -13,23 +14,21 @@ interface IUser extends Document {
     district: string;
     mandal: string;
   };
-  cropDetails: {
-    cropName: string;
-    startDate: Date;
-    endDate: Date;
-    soilReportUrl: string;
-  };
   crops: {
     cropName: string;
-    startDate: Date;
-    endDate: Date;
     addedAt: Date;
   }[];
+  cropDetails?: {
+    cropName?: string;
+    startDate?: Date;
+    endDate?: Date;
+  };
   lastSmsSent?: Date;
 }
 
 const UserSchema = new mongoose.Schema({
   mobile: { type: String, required: true, unique: true },
+  email: { type: String },
   password: { type: String, required: true },
   profile: {
     firstName: String,
@@ -41,18 +40,15 @@ const UserSchema = new mongoose.Schema({
     district: String,
     mandal: String,
   },
+  crops: [{
+    cropName: String,
+    addedAt: { type: Date, default: Date.now }
+  }],
   cropDetails: {
     cropName: String,
     startDate: Date,
-    endDate: Date,
-    soilReportUrl: String,
+    endDate: Date
   },
-  crops: [{
-    cropName: String,
-    startDate: Date,
-    endDate: Date,
-    addedAt: { type: Date, default: Date.now }
-  }],
   lastSmsSent: { type: Date },
 }, { timestamps: true });
 
