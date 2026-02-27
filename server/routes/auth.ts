@@ -16,7 +16,7 @@ router.post('/register', async (req, res) => {
     console.log('--- REGISTER ATTEMPT ---');
     console.log('Body:', JSON.stringify({ ...req.body, password: '***' }, null, 2));
 
-    const { mobile, password, profile, location, cropDetails } = req.body;
+    const { mobile, email, password, profile, location, crops } = req.body;
 
     // Validation
     if (!mobile || !password) {
@@ -35,11 +35,11 @@ router.post('/register', async (req, res) => {
 
     const newUser = new User({
       mobile,
+      email: email || '',
       password: hashedPassword,
       profile: profile || {},
       location: location || {},
-      cropDetails: cropDetails || {},
-      crops: (cropDetails && cropDetails.cropName) ? [cropDetails] : []
+      crops: crops || []
     });
 
     console.log('Saving user to database...');
@@ -81,20 +81,14 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
     console.log('User logged in:', user._id);
 
-    // Auto-repair crops if empty
-    if ((!user.crops || user.crops.length === 0) && user.cropDetails?.cropName) {
-      user.crops = [user.cropDetails];
-      await user.save();
-    }
-
     res.json({
       token,
       user: {
         id: user._id,
         mobile: user.mobile,
+        email: user.email,
         profile: user.profile,
         location: user.location,
-        cropDetails: user.cropDetails,
         crops: user.crops
       }
     });
@@ -115,12 +109,6 @@ router.get('/profile', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Auto-repair crops if empty
-    if ((!user.crops || user.crops.length === 0) && user.cropDetails?.cropName) {
-      user.crops = [user.cropDetails];
-      await user.save();
-    }
-
     console.log('Found user:', user.mobile);
     res.json(user);
   } catch (error) {
@@ -136,7 +124,7 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
     console.log('User ID:', req.userId);
     console.log('Payload:', JSON.stringify(req.body, null, 2));
 
-    const { profile, location, cropDetails } = req.body;
+    const { profile, location, crops } = req.body;
 
     const user = await User.findById(req.userId);
     if (!user) {
@@ -152,9 +140,9 @@ router.put('/profile', authMiddleware, async (req: AuthRequest, res) => {
       console.log('Updating location details...');
       Object.assign(user.location, location);
     }
-    if (cropDetails) {
-      console.log('Updating crop details...');
-      Object.assign(user.cropDetails, cropDetails);
+    if (crops) {
+      console.log('Updating crops...');
+      user.crops = crops;
     }
 
     await user.save();
@@ -172,7 +160,7 @@ router.post('/crops', authMiddleware, async (req: AuthRequest, res) => {
     console.log('--- ADD CROP ATTEMPT ---');
     console.log('User ID:', req.userId);
     console.log('Payload:', req.body);
-    const { cropName, startDate, endDate } = req.body;
+    const { cropName } = req.body;
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -180,7 +168,7 @@ router.post('/crops', authMiddleware, async (req: AuthRequest, res) => {
       user.crops = [];
     }
 
-    const newCrop = { cropName, startDate, endDate, addedAt: new Date() };
+    const newCrop = { cropName, addedAt: new Date() };
     user.crops.push(newCrop);
     await user.save();
 
@@ -191,13 +179,13 @@ router.post('/crops', authMiddleware, async (req: AuthRequest, res) => {
   }
 });
 
-// Select a crop as primary
-router.put('/crops/select', authMiddleware, async (req: AuthRequest, res) => {
+// Delete a crop
+router.delete('/crops/:cropId', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    console.log('--- SELECT CROP ATTEMPT ---');
+    console.log('--- DELETE CROP ATTEMPT ---');
     console.log('User ID:', req.userId);
-    const { cropId } = req.body;
-    console.log('Crop ID to select:', cropId);
+    const { cropId } = req.params;
+    console.log('Crop Index to delete:', cropId);
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -205,22 +193,17 @@ router.put('/crops/select', authMiddleware, async (req: AuthRequest, res) => {
       return res.status(404).json({ message: 'No crops found for this user' });
     }
 
-    // @ts-ignore - mongoose subdocument array method
-    const selectedCrop = user.crops.id(cropId);
-    if (!selectedCrop) return res.status(404).json({ message: 'Crop not found in your list' });
+    const cropIndex = parseInt(cropId);
+    if (cropIndex < 0 || cropIndex >= user.crops.length) {
+      return res.status(404).json({ message: 'Crop not found in your list' });
+    }
 
-    user.cropDetails = {
-      cropName: selectedCrop.cropName || '',
-      startDate: selectedCrop.startDate || new Date(),
-      endDate: selectedCrop.endDate || new Date(),
-      soilReportUrl: user.cropDetails?.soilReportUrl || ''
-    };
-
+    user.crops.splice(cropIndex, 1);
     await user.save();
-    res.json({ message: 'Crop selected successfully', user });
+    res.json({ message: 'Crop deleted successfully', user });
   } catch (error) {
-    console.error('Select crop error:', error);
-    res.status(500).json({ message: 'Server error selecting crop' });
+    console.error('Delete crop error:', error);
+    res.status(500).json({ message: 'Server error deleting crop' });
   }
 });
 

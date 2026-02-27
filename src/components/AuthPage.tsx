@@ -15,10 +15,13 @@ import {
   Search,
   CheckCircle2,
   ArrowRight,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 
 import indiaLocations from '../data/india_locations.json';
+import { getTopCropsForLocation } from '../data/crops_by_location';
+import CropDropdown from './CropDropdown';
 
 // Create a type for the location data structure based on the JSON
 interface District {
@@ -125,22 +128,87 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
   const [isLogin, setIsLogin] = useState(true);
   const [phase, setPhase] = useState(1);
   const [isRegistrationSuccess, setIsRegistrationSuccess] = useState(false);
+  const [mobileOtpSent, setMobileOtpSent] = useState(false);
+  const [mobileOtpVerified, setMobileOtpVerified] = useState(false);
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtpVerified, setEmailOtpVerified] = useState(false);
   const [formData, setFormData] = useState({
     mobile: '',
     password: '',
+    email: '',
+    mobileOtp: '',
+    emailOtp: '',
     firstName: '',
     lastName: '',
     age: '',
     state: '',
     district: '',
     mandal: '',
-    cropName: '',
-    startDate: '',
-    endDate: ''
+    selectedCrops: [] as string[]
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAddCrop = (crop: string) => {
+    if (!formData.selectedCrops.includes(crop)) {
+      setFormData(prev => ({
+        ...prev,
+        selectedCrops: [...prev.selectedCrops, crop]
+      }));
+    }
+  };
+
+  const handleRemoveCrop = (crop: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedCrops: prev.selectedCrops.filter(c => c !== crop)
+    }));
+  };
+
+  const handleSendMobileOtp = async () => {
+    if (!formData.mobile || formData.mobile.length < 10) {
+      alert('Please enter a valid mobile number');
+      return;
+    }
+    // In production, call your SMS API here
+    console.log('Sending OTP to mobile:', formData.mobile);
+    setMobileOtpSent(true);
+    alert('OTP sent to your mobile number');
+  };
+
+  const handleVerifyMobileOtp = () => {
+    if (!formData.mobileOtp || formData.mobileOtp.length < 4) {
+      alert('Please enter a valid OTP');
+      return;
+    }
+    // In production, verify with backend
+    console.log('Verifying mobile OTP:', formData.mobileOtp);
+    setMobileOtpVerified(true);
+    alert('Mobile number verified successfully');
+  };
+
+  const handleSendEmailOtp = async () => {
+    if (!formData.email || !formData.email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    // In production, call your Email API here
+    console.log('Sending OTP to email:', formData.email);
+    setEmailOtpSent(true);
+    alert('OTP sent to your email');
+  };
+
+  const handleVerifyEmailOtp = () => {
+    if (!formData.emailOtp || formData.emailOtp.length < 4) {
+      alert('Please enter a valid OTP');
+      return;
+    }
+    // In production, verify with backend
+    console.log('Verifying email OTP:', formData.emailOtp);
+    setEmailOtpVerified(true);
+    alert('Email verified successfully');
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -190,6 +258,11 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       return;
     }
 
+    if (!mobileOtpVerified || !emailOtpVerified) {
+      alert('Please verify both mobile and email before registering');
+      return;
+    }
+
     if (formData.password.length < 6) {
       alert('Password must be at least 6 characters long');
       return;
@@ -205,13 +278,8 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       return;
     }
 
-    if (!formData.cropName) {
-      alert('Please enter a crop name');
-      return;
-    }
-
-    if (!formData.startDate || !formData.endDate) {
-      alert('Please select start and end dates');
+    if (formData.selectedCrops.length === 0) {
+      alert('Please select at least one crop');
       return;
     }
 
@@ -219,6 +287,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
       console.log('Sending registration request...');
       const payload = {
         mobile: formData.mobile,
+        email: formData.email,
         password: formData.password,
         profile: {
           firstName: formData.firstName,
@@ -230,12 +299,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
           district: formData.district,
           mandal: formData.mandal,
         },
-        cropDetails: {
-          cropName: formData.cropName,
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          soilReportUrl: '',
-        },
+        crops: formData.selectedCrops.map(cropName => ({
+          cropName,
+          addedAt: new Date()
+        })),
       };
 
       console.log('Payload:', payload);
@@ -256,18 +323,23 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
           setIsRegistrationSuccess(false);
           setIsLogin(true);
           setPhase(1);
+          setMobileOtpSent(false);
+          setMobileOtpVerified(false);
+          setEmailOtpSent(false);
+          setEmailOtpVerified(false);
           setFormData({
             mobile: '',
             password: '',
+            email: '',
+            mobileOtp: '',
+            emailOtp: '',
             firstName: '',
             lastName: '',
             age: '',
             state: '',
             district: '',
             mandal: '',
-            cropName: '',
-            startDate: '',
-            endDate: '',
+            selectedCrops: [],
           });
         }, 3000);
       } else {
@@ -427,10 +499,10 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                   {[1, 2, 3].map((s) => (
                     <div key={s} className="relative z-10 flex flex-col items-center gap-2">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 ${phase >= s ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-white/10 text-white/30'}`}>
-                        {phase > s ? <CheckCircle2 size={20} /> : s}
+                        {(s === 1 && (mobileOtpVerified && emailOtpVerified)) || (phase > s) ? <CheckCircle2 size={20} /> : s}
                       </div>
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${phase >= s ? 'text-white' : 'text-white/30'}`}>
-                        {s === 1 ? 'Account' : s === 2 ? 'Profile' : 'Agriculture'}
+                        {s === 1 ? 'Verify' : s === 2 ? 'Profile' : 'Crops'}
                       </span>
                     </div>
                   ))}
@@ -439,20 +511,111 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                 <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                   {phase === 1 && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                      <div className="space-y-2">
+                      {/* Mobile Number Section */}
+                      <div>
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Mobile Number</label>
-                        <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                          <input
-                            type="tel"
-                            name="mobile"
-                            value={formData.mobile}
-                            onChange={handleInputChange}
-                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                            placeholder="Enter mobile number"
-                          />
+                        <div className="flex gap-3 mt-2">
+                          <div className="flex-1 relative">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                              type="tel"
+                              name="mobile"
+                              value={formData.mobile}
+                              onChange={handleInputChange}
+                              disabled={mobileOtpVerified}
+                              className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-60"
+                              placeholder="Enter mobile number"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleSendMobileOtp}
+                            disabled={mobileOtpVerified}
+                            className="px-6 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-60 whitespace-nowrap"
+                          >
+                            {mobileOtpVerified ? 'Verified' : 'Send OTP'}
+                          </button>
                         </div>
                       </div>
+
+                      {/* Mobile OTP Verification */}
+                      {mobileOtpSent && !mobileOtpVerified && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Enter OTP (Mobile)</label>
+                          <div className="flex gap-3">
+                            <input
+                              type="text"
+                              name="mobileOtp"
+                              value={formData.mobileOtp}
+                              onChange={handleInputChange}
+                              maxLength={6}
+                              className="flex-1 bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-center"
+                              placeholder="000000"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleVerifyMobileOtp}
+                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all whitespace-nowrap"
+                            >
+                              Verify
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Email Section */}
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Email Address</label>
+                        <div className="flex gap-3 mt-2">
+                          <div className="flex-1 relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              disabled={emailOtpVerified || !mobileOtpVerified}
+                              className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-60"
+                              placeholder="Enter email address"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleSendEmailOtp}
+                            disabled={emailOtpVerified || !mobileOtpVerified}
+                            className="px-6 py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-60 whitespace-nowrap"
+                          >
+                            {emailOtpVerified ? 'Verified' : 'Send OTP'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Email OTP Verification */}
+                      {emailOtpSent && !emailOtpVerified && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Enter OTP (Email)</label>
+                          <div className="flex gap-3">
+                            <input
+                              type="text"
+                              name="emailOtp"
+                              value={formData.emailOtp}
+                              onChange={handleInputChange}
+                              maxLength={6}
+                              className="flex-1 bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-center"
+                              placeholder="000000"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleVerifyEmailOtp}
+                              className="px-6 py-4 bg-green-500 text-white rounded-2xl font-bold text-sm hover:bg-green-600 transition-all whitespace-nowrap"
+                            >
+                              Verify
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Password */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Create Password</label>
                         <div className="relative">
@@ -462,7 +625,8 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                             name="password"
                             value={formData.password}
                             onChange={handleInputChange}
-                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                            disabled={!mobileOtpVerified || !emailOtpVerified}
+                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-60"
                             placeholder="Choose a strong password"
                           />
                         </div>
@@ -524,7 +688,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                           label="State"
                           value={formData.state}
                           onChange={(val) => {
-                            setFormData(prev => ({ ...prev, state: val, district: '', mandal: '' }));
+                            setFormData(prev => ({ ...prev, state: val, district: '', mandal: '', selectedCrops: [] }));
                           }}
                           options={LOCATION_DATA.map(s => s.name)}
                           placeholder="Select State"
@@ -533,7 +697,7 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                           label="District"
                           value={formData.district}
                           onChange={(val) => {
-                            setFormData(prev => ({ ...prev, district: val, mandal: '' }));
+                            setFormData(prev => ({ ...prev, district: val, mandal: '', selectedCrops: [] }));
                           }}
                           options={formData.state ? (LOCATION_DATA.find(s => s.name === formData.state)?.districtList.map(d => d.name) || []) : []}
                           disabled={!formData.state}
@@ -555,42 +719,65 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Crop Name</label>
-                        <div className="relative">
-                          <Sprout className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                          <input
-                            type="text"
-                            name="cropName"
-                            value={formData.cropName}
-                            onChange={handleInputChange}
-                            className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-800 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                            placeholder="e.g. Paddy, Cotton"
-                          />
-                        </div>
-                      </div>
+                      {/* Multi-Crop Selection */}
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Select Crops (Multiple)</label>
+                        
+                        <CropDropdown
+                          value=""
+                          onChange={handleAddCrop}
+                          selectedCrops={formData.selectedCrops}
+                          topCrops={getTopCropsForLocation(formData.state, formData.district)}
+                          placeholder="Search and select crops..."
+                        />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">Start Date</label>
-                          <input
-                            type="date"
-                            name="startDate"
-                            value={formData.startDate}
-                            onChange={handleInputChange}
-                            className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-white/80 ml-1">End Date</label>
-                          <input
-                            type="date"
-                            name="endDate"
-                            value={formData.endDate}
-                            onChange={handleInputChange}
-                            className="w-full bg-white rounded-2xl py-4 px-4 text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                          />
-                        </div>
+                        {/* Selected Crops Display */}
+                        {formData.selectedCrops.length > 0 && (
+                          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 rounded-2xl p-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-white/90 text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                <Sprout size={16} className="text-primary" />
+                                Selected Crops ({formData.selectedCrops.length})
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, selectedCrops: [] }))}
+                                className="text-white/60 hover:text-white transition-colors text-xs font-semibold"
+                              >
+                                Clear All
+                              </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {formData.selectedCrops.map((crop, index) => (
+                                <motion.div
+                                  key={`${crop}-${index}`}
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                  className="bg-gradient-to-r from-primary to-primary/80 text-white px-4 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2.5 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all group"
+                                >
+                                  <Sprout size={16} className="group-hover:rotate-12 transition-transform" />
+                                  <span>{crop}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCrop(crop)}
+                                    className="ml-1 hover:bg-white/20 rounded-full p-1 transition-all transform hover:scale-110"
+                                  >
+                                    <X size={16} />
+                                  </button>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {/* Empty State Message */}
+                        {formData.selectedCrops.length === 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                            <p className="text-white/60 text-sm">No crops selected yet. Choose from the list above to get started.</p>
+                          </div>
+                        )}
                       </div>
 
                     </motion.div>
@@ -610,14 +797,33 @@ export default function AuthPage({ onAuthSuccess }: { onAuthSuccess: (name?: str
                     <button
                       type="button"
                       onClick={() => {
-                        if (phase < 3) {
-                          setPhase(phase + 1);
-                        } else {
+                        if (phase === 1) {
+                          if (!mobileOtpVerified || !emailOtpVerified) {
+                            alert('Please verify both mobile and email before proceeding');
+                            return;
+                          }
+                          if (!formData.password) {
+                            alert('Please enter a password');
+                            return;
+                          }
+                          setPhase(2);
+                        } else if (phase === 2) {
+                          if (!formData.firstName || !formData.lastName || !formData.age) {
+                            alert('Please fill in all profile fields');
+                            return;
+                          }
+                          setPhase(3);
+                        } else if (phase === 3) {
+                          if (!formData.state || !formData.district || !formData.mandal || formData.selectedCrops.length === 0) {
+                            alert('Please select all location and at least one crop');
+                            return;
+                          }
                           console.log('Complete Registration button clicked');
                           handleRegister();
                         }
                       }}
-                      className="flex-[2] bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20"
+                      className="flex-[2] bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 disabled:opacity-60"
+                      disabled={phase === 1 && (!mobileOtpVerified || !emailOtpVerified)}
                     >
                       {phase === 3 ? 'Complete Registration' : 'Next Step'}
                       <ArrowRight size={20} />
