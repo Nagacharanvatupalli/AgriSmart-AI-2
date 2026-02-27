@@ -1,0 +1,10 @@
+[33m8d30784[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33m175dd0e[m HEAD@{1}: commit: multiligual implemented except for dashboard
+[33m8d30784[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{2}: commit: voice assistant in ai advise
+[33mde64203[m HEAD@{3}: pull: Fast-forward
+[33mbfb16eb[m HEAD@{4}: pull: Fast-forward
+[33m7a267df[m HEAD@{5}: commit: renewed twilio api
+[33m91697c9[m HEAD@{6}: pull: Fast-forward
+[33mfe1439b[m HEAD@{7}: commit: all states and districts added in registration
+[33m8894a60[m HEAD@{8}: commit: final crops
+[33m9d5fcad[m HEAD@{9}: clone: from https://github.com/Nagacharanvatupalli/AgriSmart-AI.git
