@@ -35,7 +35,7 @@ const LANG_NAME: Record<string, string> = {
 export const getAgriculturalAdvice = async (query: string, context?: string, language = 'en') => {
   const model = "gemini-2.0-flash";
   const languageName = LANG_NAME[language] || 'English';
-  const systemInstruction = `You are an expert agricultural consultant. Provide practical, sustainable, and scientifically-backed advice to farmers. Focus on crop management, soil health, irrigation, and pest control. Keep responses concise and actionable. Respond in ${languageName}.`;
+  const systemInstruction = `You are an expert agricultural consultant. Give "gunshot" answers—short, direct, and actionable. EXTREME BREVITY IS REQUIRED. If the user asks for a price, return ONLY the price or a very short sentence. Respond in ${languageName}.`;
 
   const cacheKey = `${language}::${query}`;
   const cached = adviceCache.get(cacheKey);

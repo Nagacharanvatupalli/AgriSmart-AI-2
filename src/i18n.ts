@@ -148,7 +148,10 @@ const resources = {
                 },
                 "loading": "Assistant is thinking...",
                 "user_label": "Farmer",
-                "ai_label": "AgriSmart AI"
+                "ai_label": "AgriSmart AI",
+                "voice_unsupported": "Voice input is not supported in this browser.",
+                "start_listening": "Start voice input",
+                "stop_listening": "Stop listening"
             },
             "diagnosis": {
                 "title": "CROP DOCTOR",
@@ -500,7 +503,10 @@ const resources = {
                 },
                 "loading": "సహాయకుడు ఆలోచిస్తోంది...",
                 "user_label": "రైతు",
-                "ai_label": "AgriSmart AI"
+                "ai_label": "AgriSmart AI",
+                "voice_unsupported": "ఈ బ్రౌజర్‌లో వాయిస్ ఇన్‌పుట్ సపోర్ట్ చేయబడదు.",
+                "start_listening": "వాయిస్ ఇన్‌పుట్ ప్రారంభించండి",
+                "stop_listening": "వినడం ఆపు"
             },
             "diagnosis": {
                 "title": "పంట డాక్టర్",
@@ -852,7 +858,10 @@ const resources = {
                 },
                 "loading": "सहायक सोच रहा है...",
                 "user_label": "किसान",
-                "ai_label": "AgriSmart AI"
+                "ai_label": "AgriSmart AI",
+                "voice_unsupported": "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है।",
+                "start_listening": "वॉयस इनपुट शुरू करें",
+                "stop_listening": "सुनना बंद करें"
             },
             "diagnosis": {
                 "title": "पंत डॉक्टर",
@@ -1097,7 +1106,7 @@ const resources = {
                 "verified": "சரிபார்க்கப்பட்ட விவசாயி",
                 "location_details": "இருப்பிட விவரங்கள்",
                 "not_set": "இருப்பிடம் அமைக்கப்படவில்லை",
-                "details_not_set": "விవరங்கள் அமைக்கப்படவில்லை",
+                "details_not_set": "விவரங்கள் அமைக்கப்படவில்லை",
                 "primary_crop": "முதன்மை பயிர்",
                 "not_selected": "தேர்ந்தெடுக்கப்படவில்லை",
                 "edit_profile": "சுயவிவரத்தை மாற்றவும்",
@@ -1109,17 +1118,17 @@ const resources = {
                 "weather_feed": "தினசரி வானிலை தகவல்",
                 "weather": {
                     "temp": "வெப்பநிலை",
-                    "humidity": "ஈரப்பదం",
+                    "humidity": "ஈரப்பதம்",
                     "rain_today": "இன்று மழை",
                     "none": "இல்லை",
-                    "wind_speed": "காற்றின் వేగం",
+                    "wind_speed": "காற்றின் வேகம்",
                     "tomorrow_rain": "நாளை மழை",
                     "chance": "{{percent}}% வாய்ப்பு",
                     "set_location": "வானிலை பார்க்க உங்கள் இருப்பிடத்தை அமைக்கவும்"
                 },
                 "ai_recommendation": {
                     "title": "பரிந்துரைகள்",
-                    "desc": "{{district}} க்கான உள்ளூர் பகுப்பாய்வு மண் நிலைமைகள் நிலையாக இருப்பதைக் காட்டுகிறது. సరైన வளர்ச்சிக்கு தற்போதைய {{crop}} மேலாண்மை திட்டத்தைத் தொடரவும்.",
+                    "desc": "{{district}} க்கான உள்ளூர் பகுப்பாய்வு மண் நிலமைகள் சீராக இருப்பதைக் காட்டுகிறது. சரியான வளர்ச்சிக்கு தற்போதைய {{crop}} மேலாண்மை திட்டத்தைத் தொடரவும்.",
                     "access_lab": "முழு AI ஆய்வகத்தை அணுகவும்"
                 },
                 "market": {
@@ -1164,7 +1173,7 @@ const resources = {
                     "chittoor": "சித்தூர்",
                     "kurnool": "கர்ணூல்",
                     "warangal": "வரங்கல்",
-                    "hyderabad": "ஹైదరాబాద్",
+                    "hyderabad": "ஹைதராபாத்",
                     "farmer": "விவசாயி"
                 }
             },
@@ -1174,7 +1183,7 @@ const resources = {
                 "crops_btn": "பயிர்கள்",
                 "get_started": "தொடங்குங்கள்",
                 "info_title": "திட்ட தகவல்",
-                "info_desc": "AgriSmartAI என்பது AI மற்றும் ML இல் சமீபத்திய முன்னேற்றங்களுடன் விவசாயிகளை மேம்படுத்த வடிவமைக்கப்பட்ட அத்யாdhuna தளம். எங்கள் அமைப்பு நிகழ்நேர நுண்ணறிவுகள், துல்லியமான பயிர் நோய் கண்டறிதல் மற்றும் தனிப்பயனாக்கப்பட்ட விவசாய ஆலோசனை வழங்குகிறது.",
+                "info_desc": "AgriSmartAI என்பது AI மற்றும் ML இல் சமீபத்திய முன்னேற்றங்களுடன் விவசாயிகளை மேம்படுத்த வடிவமைக்கப்பட்ட நவீன தளம். எங்கள் அமைப்பு நிகழ்நேர நுண்ணறிவுகள், துல்லியமான பயிர் நோய் கண்டறிதல் மற்றும் தனிப்பயனாக்கப்பட்ட விவசாய ஆலோசனை வழங்குகிறது.",
                 "motivation_title": "எங்கள் உந்துதல்",
                 "motivation_desc": "AgriSmartAI பின்னால் உள்ள உந்துதல் உலகளாவிய உணவுப் பாதுகாப்பு சவால்களை நிவர்த்தி செய்ய வேண்டிய அவசர தேவையிலிருந்து வருகிறது.",
                 "motivation_quote": "\"புத்திசாலித்தனமான, அணுகக்கூடிய தொழில்நுட்பத்தின் மூலம் உலகை ஊட்டும் கைகளை மேம்படுத்துதல்.\"",
@@ -1204,7 +1213,10 @@ const resources = {
                 },
                 "loading": "உதவியாளர் சிந்திக்கிறான்...",
                 "user_label": "விவசாயி",
-                "ai_label": "AgriSmart AI"
+                "ai_label": "AgriSmart AI",
+                "voice_unsupported": "இந்த உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை.",
+                "start_listening": "குரல் உள்ளீட்டைத் தொடங்கவும்",
+                "stop_listening": "கேட்பதை நிறுத்து"
             },
             "diagnosis": {
                 "title": "பயிர் வைத்திய மன்னன்",
