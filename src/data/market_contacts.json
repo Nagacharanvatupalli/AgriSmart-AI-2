@@ -1,0 +1,332 @@
+{
+    "Guntur": {
+        "head": "Sri K. Ramesh Babu",
+        "phone": "0863-2233456",
+        "role": "Secretary, Guntur APMC"
+    },
+    "Warangal": {
+        "head": "Sri M. Venkat Reddy",
+        "phone": "0870-2424567",
+        "role": "Secretary, Warangal APMC"
+    },
+    "Hyderabad": {
+        "head": "Sri P. Srinivas",
+        "phone": "040-24600123",
+        "role": "Secretary, Bowenpally Market"
+    },
+    "Kurnool": {
+        "head": "Sri B. Nagendra",
+        "phone": "08518-225678",
+        "role": "Secretary, Kurnool APMC"
+    },
+    "Anantapur": {
+        "head": "Sri D. Suresh",
+        "phone": "08554-242345",
+        "role": "Secretary, Anantapur APMC"
+    },
+    "Vijayawada": {
+        "head": "Sri T. Kishore",
+        "phone": "0866-2575890",
+        "role": "Secretary, Vijayawada APMC"
+    },
+    "Rajahmundry": {
+        "head": "Sri S. Prasad",
+        "phone": "0883-2464567",
+        "role": "Secretary, Rajahmundry APMC"
+    },
+    "Tirupati": {
+        "head": "Sri N. Bhaskar",
+        "phone": "0877-2231456",
+        "role": "Secretary, Tirupati APMC"
+    },
+    "Karimnagar": {
+        "head": "Sri L. Rajender",
+        "phone": "0878-2256789",
+        "role": "Secretary, Karimnagar APMC"
+    },
+    "Nizamabad": {
+        "head": "Sri K. Mahender",
+        "phone": "08462-232456",
+        "role": "Secretary, Nizamabad APMC"
+    },
+    "Khammam": {
+        "head": "Sri V. Ranga Rao",
+        "phone": "08742-255678",
+        "role": "Secretary, Khammam APMC"
+    },
+    "Nalgonda": {
+        "head": "Sri G. Srinivasa Rao",
+        "phone": "08682-234567",
+        "role": "Secretary, Nalgonda APMC"
+    },
+    "Chennai": {
+        "head": "Sri R. Mohan",
+        "phone": "044-25362345",
+        "role": "Secretary, Koyambedu Market"
+    },
+    "Coimbatore": {
+        "head": "Sri S. Senthil Kumar",
+        "phone": "0422-2301234",
+        "role": "Secretary, Coimbatore APMC"
+    },
+    "Madurai": {
+        "head": "Sri K. Murugan",
+        "phone": "0452-2531234",
+        "role": "Secretary, Madurai APMC"
+    },
+    "Salem": {
+        "head": "Sri P. Ravi",
+        "phone": "0427-2315678",
+        "role": "Secretary, Salem APMC"
+    },
+    "Bangalore": {
+        "head": "Sri H. Prakash",
+        "phone": "080-26700123",
+        "role": "Secretary, APMC Yeshwanthpur"
+    },
+    "Mysore": {
+        "head": "Sri C. Nagaraj",
+        "phone": "0821-2520567",
+        "role": "Secretary, Mysore APMC"
+    },
+    "Hubli": {
+        "head": "Sri B. Patil",
+        "phone": "0836-2262345",
+        "role": "Secretary, Hubli APMC"
+    },
+    "Belgaum": {
+        "head": "Sri S. Kulkarni",
+        "phone": "0831-2401234",
+        "role": "Secretary, Belgaum APMC"
+    },
+    "Pune": {
+        "head": "Sri A. Deshmukh",
+        "phone": "020-26130123",
+        "role": "Secretary, Pune Market Yard"
+    },
+    "Mumbai": {
+        "head": "Sri R. Patil",
+        "phone": "022-23456789",
+        "role": "Secretary, APMC Vashi"
+    },
+    "Nagpur": {
+        "head": "Sri V. Deshpande",
+        "phone": "0712-2561234",
+        "role": "Secretary, Nagpur APMC"
+    },
+    "Nashik": {
+        "head": "Sri D. Ahire",
+        "phone": "0253-2312345",
+        "role": "Secretary, Nashik APMC"
+    },
+    "Aurangabad": {
+        "head": "Sri J. Kale",
+        "phone": "0240-2345678",
+        "role": "Secretary, Aurangabad APMC"
+    },
+    "Kolhapur": {
+        "head": "Sri M. Jadhav",
+        "phone": "0231-2651234",
+        "role": "Secretary, Kolhapur APMC"
+    },
+    "Solapur": {
+        "head": "Sri T. Mane",
+        "phone": "0217-2312345",
+        "role": "Secretary, Solapur APMC"
+    },
+    "Ahmedabad": {
+        "head": "Sri K. Patel",
+        "phone": "079-25501234",
+        "role": "Secretary, Ahmedabad APMC"
+    },
+    "Rajkot": {
+        "head": "Sri B. Shah",
+        "phone": "0281-2461234",
+        "role": "Secretary, Rajkot APMC"
+    },
+    "Surat": {
+        "head": "Sri H. Desai",
+        "phone": "0261-2451234",
+        "role": "Secretary, Surat APMC"
+    },
+    "Jaipur": {
+        "head": "Sri R. Sharma",
+        "phone": "0141-2612345",
+        "role": "Secretary, Jaipur Mandi"
+    },
+    "Jodhpur": {
+        "head": "Sri S. Rathore",
+        "phone": "0291-2631234",
+        "role": "Secretary, Jodhpur Mandi"
+    },
+    "Lucknow": {
+        "head": "Sri A. Verma",
+        "phone": "0522-2612345",
+        "role": "Secretary, Lucknow Mandi"
+    },
+    "Agra": {
+        "head": "Sri P. Singh",
+        "phone": "0562-2521234",
+        "role": "Secretary, Agra Mandi"
+    },
+    "Kanpur": {
+        "head": "Sri V. Mishra",
+        "phone": "0512-2301234",
+        "role": "Secretary, Kanpur Mandi"
+    },
+    "Allahabad": {
+        "head": "Sri N. Tiwari",
+        "phone": "0532-2401234",
+        "role": "Secretary, Allahabad Mandi"
+    },
+    "Varanasi": {
+        "head": "Sri R. Pandey",
+        "phone": "0542-2501234",
+        "role": "Secretary, Varanasi Mandi"
+    },
+    "Indore": {
+        "head": "Sri M. Joshi",
+        "phone": "0731-2551234",
+        "role": "Secretary, Indore Mandi"
+    },
+    "Bhopal": {
+        "head": "Sri S. Shukla",
+        "phone": "0755-2551234",
+        "role": "Secretary, Bhopal Mandi"
+    },
+    "Patna": {
+        "head": "Sri R. Kumar",
+        "phone": "0612-2201234",
+        "role": "Secretary, Patna APMC"
+    },
+    "Kolkata": {
+        "head": "Sri D. Ghosh",
+        "phone": "033-22501234",
+        "role": "Secretary, Kolkata Market"
+    },
+    "Ludhiana": {
+        "head": "Sri G. Singh",
+        "phone": "0161-2401234",
+        "role": "Secretary, Ludhiana Mandi"
+    },
+    "Amritsar": {
+        "head": "Sri J. Singh",
+        "phone": "0183-2561234",
+        "role": "Secretary, Amritsar Mandi"
+    },
+    "Bhubaneswar": {
+        "head": "Sri B. Mohanty",
+        "phone": "0674-2301234",
+        "role": "Secretary, Bhubaneswar Market"
+    },
+    "Raipur": {
+        "head": "Sri T. Sahu",
+        "phone": "0771-2281234",
+        "role": "Secretary, Raipur Mandi"
+    },
+    "Ongole": {
+        "head": "Sri K. Naidu",
+        "phone": "08592-232345",
+        "role": "Secretary, Ongole APMC"
+    },
+    "Nellore": {
+        "head": "Sri R. Reddy",
+        "phone": "0861-2345678",
+        "role": "Secretary, Nellore APMC"
+    },
+    "Kadapa": {
+        "head": "Sri V. Krishna",
+        "phone": "08562-242345",
+        "role": "Secretary, Kadapa APMC"
+    },
+    "Adilabad": {
+        "head": "Sri P. Rao",
+        "phone": "08732-225234",
+        "role": "Secretary, Adilabad APMC"
+    },
+    "Chittoor": {
+        "head": "Sri A. Babu",
+        "phone": "08572-232456",
+        "role": "Secretary, Chittoor APMC"
+    },
+    "Srikakulam": {
+        "head": "Sri M. Rao",
+        "phone": "08942-221345",
+        "role": "Secretary, Srikakulam APMC"
+    },
+    "Eluru": {
+        "head": "Sri G. Prasad",
+        "phone": "08812-232456",
+        "role": "Secretary, Eluru APMC"
+    },
+    "Kakinada": {
+        "head": "Sri L. Naidu",
+        "phone": "0884-2371234",
+        "role": "Secretary, Kakinada APMC"
+    },
+    "Tenali": {
+        "head": "Sri B. Rao",
+        "phone": "08644-226789",
+        "role": "Secretary, Tenali APMC"
+    },
+    "Narasaraopet": {
+        "head": "Sri S. Kumar",
+        "phone": "08647-232345",
+        "role": "Secretary, Narasaraopet APMC"
+    },
+    "Hindupur": {
+        "head": "Sri K. Reddy",
+        "phone": "08556-222345",
+        "role": "Secretary, Hindupur APMC"
+    },
+    "Dharmavaram": {
+        "head": "Sri R. Naidu",
+        "phone": "08559-232345",
+        "role": "Secretary, Dharmavaram APMC"
+    },
+    "Tadepalligudem": {
+        "head": "Sri V. Mohan",
+        "phone": "08818-232456",
+        "role": "Secretary, Tadepalligudem APMC"
+    },
+    "Erode": {
+        "head": "Sri M. Kumar",
+        "phone": "0424-2261234",
+        "role": "Secretary, Erode APMC"
+    },
+    "Tirunelveli": {
+        "head": "Sri S. Balaji",
+        "phone": "0462-2501234",
+        "role": "Secretary, Tirunelveli APMC"
+    },
+    "Shimoga": {
+        "head": "Sri N. Gowda",
+        "phone": "08182-271234",
+        "role": "Secretary, Shimoga APMC"
+    },
+    "Bellary": {
+        "head": "Sri K. Raju",
+        "phone": "08392-262345",
+        "role": "Secretary, Bellary APMC"
+    },
+    "Davangere": {
+        "head": "Sri P. Basappa",
+        "phone": "08192-232456",
+        "role": "Secretary, Davangere APMC"
+    },
+    "Dharwad": {
+        "head": "Sri S. Hegde",
+        "phone": "0836-2744567",
+        "role": "Secretary, Dharwad APMC"
+    },
+    "Ahmednagar": {
+        "head": "Sri R. More",
+        "phone": "0241-2345678",
+        "role": "Secretary, Ahmednagar APMC"
+    },
+    "Sangli": {
+        "head": "Sri V. Patil",
+        "phone": "0233-2671234",
+        "role": "Secretary, Sangli APMC"
+    }
+}

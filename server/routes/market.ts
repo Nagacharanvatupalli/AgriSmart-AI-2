@@ -9,6 +9,225 @@ dotenv.config();
 const router = express.Router();
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
+// Official data.gov.in API for APMC market prices
+const DATA_GOV_API_KEY = '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
+const DATA_GOV_RESOURCE_ID = '9ef84268-d588-465a-a308-a864a43d0070';
+
+// Mapping local crop names to Agmarknet commodity names for better accuracy
+const COMMODITY_MAP: { [key: string]: string } = {
+    "Dry Chillies": "Chilli Red",
+    "Chili Red": "Chilli Red",
+    "Soybean": "Soyabean",
+    "Paddy(Basmati)": "Paddy(Dhan)(Basmati)",
+    "Paddy(Common)": "Paddy(Dhan)(Common)",
+    "Corn": "Maize",
+    "Ajwain Husk": "Ajwan",
+    "Meal Maker (Soya Chunks)": "Soyabean",
+    "Ginger(Dry)": "Ginger(Dry)",
+    "Ginger(Green)": "Ginger(Green)",
+    "Turmeric": "Turmeric",
+    "Cotton": "Cotton",
+    "Wheat": "Wheat",
+    "Rice": "Rice",
+    "Pulse": "Arhar (Tur/Red Gram)(Whole)"
+};
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper to check MongoDB for recently fetched data (today)
+async function checkRecentCache(crop: string, market: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    try {
+        const cached = await MarketPrice.find({
+            commodity: crop,
+            date: { $gte: today, $lte: endOfDay }
+        }).sort({ is_primary: -1 }); // Primary market first
+
+        if (cached && cached.length > 0) {
+            // Check if our specific market is in the results
+            const hasPrimary = cached.some(m => m.market.toLowerCase() === market.toLowerCase());
+            if (hasPrimary) return cached;
+        }
+    } catch (err) {
+        console.log('[MARKET API] Cache check failed:', err);
+    }
+    return null;
+}
+
+// Fetch from official data.gov.in API
+async function fetchFromDataGov(crop: string, market: string, retryCount = 0): Promise<any[] | null> {
+    const searchCrop = COMMODITY_MAP[crop] || crop;
+    try {
+        const url = `https://api.data.gov.in/resource/${DATA_GOV_RESOURCE_ID}`;
+        const response = await axios.get(url, {
+            params: {
+                'api-key': DATA_GOV_API_KEY,
+                format: 'json',
+                limit: 50,
+                'filters[commodity]': searchCrop,
+                'filters[market]': market
+            },
+            timeout: 15000
+        });
+
+        const records = response.data?.records;
+        if (!records || !Array.isArray(records) || records.length === 0) {
+            return null;
+        }
+
+        // Transform data.gov.in format to our app format
+        const results = records.map((r: any, index: number) => ({
+            commodity: crop, // Keep original app name for consistency
+            market: r.market || market,
+            is_primary: index === 0,
+            state: r.state || '',
+            district: r.district || '',
+            grade1_price: parseFloat(r.max_price || r.modal_price) || 0,
+            grade2_price: parseFloat(r.modal_price) || 0,
+            grade3_price: parseFloat(r.min_price || r.modal_price) || 0,
+            modal_price: parseFloat(r.modal_price) || 0,
+            date: r.arrival_date || new Date().toISOString().split('T')[0],
+            historical_price_yesterday: 0,
+            source: 'data.gov.in (Agmarknet)'
+        }));
+
+        // Deduplicate
+        const seen = new Map();
+        for (const r of results) {
+            if (!seen.has(r.market)) seen.set(r.market, r);
+        }
+        const unique = Array.from(seen.values());
+        if (unique.length > 0) unique[0].is_primary = true;
+
+        return unique;
+    } catch (err: any) {
+        if (err.response?.status === 429 && retryCount < 2) {
+            console.log(`[MARKET API] Rate limited (429), retrying in 1s... Attempt ${retryCount + 1}`);
+            await sleep(1000);
+            return fetchFromDataGov(crop, market, retryCount + 1);
+        }
+        console.log('[MARKET API] data.gov.in fetch failed:', err.message);
+        return null;
+    }
+}
+
+// Also try fetching nearby market data from data.gov.in (without market filter)
+async function fetchNearbyFromDataGov(crop: string, state: string, retryCount = 0): Promise<any[] | null> {
+    const searchCrop = COMMODITY_MAP[crop] || crop;
+    try {
+        const params: any = {
+            'api-key': DATA_GOV_API_KEY,
+            format: 'json',
+            limit: 20,
+            'filters[commodity]': searchCrop
+        };
+        if (state) params['filters[state]'] = state;
+
+        const url = `https://api.data.gov.in/resource/${DATA_GOV_RESOURCE_ID}`;
+        const response = await axios.get(url, { params, timeout: 15000 });
+
+        const records = response.data?.records;
+        if (!records || !Array.isArray(records) || records.length === 0) return null;
+
+        return records.map((r: any) => ({
+            commodity: crop,
+            market: r.market || '',
+            is_primary: false,
+            state: r.state || '',
+            district: r.district || '',
+            grade1_price: parseFloat(r.max_price || r.modal_price) || 0,
+            grade2_price: parseFloat(r.modal_price) || 0,
+            grade3_price: parseFloat(r.min_price || r.modal_price) || 0,
+            modal_price: parseFloat(r.modal_price) || 0,
+            date: r.arrival_date || new Date().toISOString().split('T')[0],
+            historical_price_yesterday: 0,
+            source: 'data.gov.in (Agmarknet)'
+        }));
+    } catch (err: any) {
+        if (err.response?.status === 429 && retryCount < 2) {
+            await sleep(1000);
+            return fetchNearbyFromDataGov(crop, state, retryCount + 1);
+        }
+        return null;
+    }
+}
+
+// Fallback: Fetch from Perplexity AI
+async function fetchFromPerplexity(crop: string, market: string): Promise<any[] | null> {
+    if (!PERPLEXITY_API_KEY) return null;
+
+    try {
+        const query = `Find the latest wholesale/APMC market prices for the commodity "${crop}" at or near "${market}" market in India.
+Include the primary market "${market}" and at least 2 nearby APMC markets trading "${crop}".
+For each market provide 3 quality grade prices (Grade 1 = best, Grade 3 = lowest) per 100 kg (quintal).
+Also include yesterday's modal price if available.
+
+CRITICAL: You MUST respond with ONLY a valid JSON array. No explanations, no markdown, no code fences, no text before or after. If exact data is unavailable, provide your best reasonable estimate based on nearby markets and recent trends. Never return empty or non-JSON.
+
+JSON format per object:
+{"commodity":"string","market":"string","is_primary":true/false,"state":"string","district":"string","grade1_price":number,"grade2_price":number,"grade3_price":number,"modal_price":number,"date":"YYYY-MM-DD","historical_price_yesterday":number,"source":"string"}
+
+Return ONLY the JSON array starting with [ and ending with ]. Nothing else.`;
+
+        const systemPrompt = 'You are an agricultural market data API. You ONLY output valid JSON arrays. Never output explanations, apologies, or markdown. If exact prices are unavailable, estimate using nearby market data and recent trends. Always return a valid JSON array with at least 1 entry.';
+
+        const makeCall = async (prompt: string, system: string) => {
+            const resp = await axios.post(
+                'https://api.perplexity.ai/chat/completions',
+                {
+                    model: 'sonar',
+                    messages: [
+                        { role: 'system', content: system },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.1,
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 30000
+                }
+            );
+            return resp.data.choices[0].message.content;
+        };
+
+        const parseJsonArray = (raw: string) => {
+            try {
+                const s = raw.indexOf('[');
+                const e = raw.lastIndexOf(']');
+                if (s !== -1 && e !== -1 && e > s) {
+                    const parsed = JSON.parse(raw.substring(s, e + 1));
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch { }
+            return null;
+        };
+
+        let rawContent = await makeCall(query, systemPrompt);
+        let results = parseJsonArray(rawContent);
+
+        if (!results) {
+            console.log('[MARKET API] Perplexity first attempt failed, retrying...');
+            const retryQuery = `Return a JSON array of current market prices for "${crop}" near "${market}", India. Format:
+[{"commodity":"${crop}","market":"${market}","is_primary":true,"state":"","district":"","grade1_price":0,"grade2_price":0,"grade3_price":0,"modal_price":0,"date":"${new Date().toISOString().split('T')[0]}","historical_price_yesterday":0,"source":"Agmarknet"}]
+Fill in real or estimated values. Include 2-3 markets. Return ONLY the JSON array.`;
+            rawContent = await makeCall(retryQuery, 'Output only a valid JSON array. No other text.');
+            results = parseJsonArray(rawContent);
+        }
+
+        return results;
+    } catch (err: any) {
+        console.log('[MARKET API] Perplexity fetch failed:', err.message);
+        return null;
+    }
+}
+
 // User must be logged in to access market data
 router.get('/prices', authMiddleware, async (req, res) => {
     const { crop, market } = req.query;
@@ -17,94 +236,80 @@ router.get('/prices', authMiddleware, async (req, res) => {
         return res.status(400).json({ message: 'Crop and market/district are required' });
     }
 
-    if (!PERPLEXITY_API_KEY) {
-        return res.status(500).json({ message: 'Perplexity API key is missing on server' });
-    }
-
     try {
-        const query = `Get the latest real-time market prices for "${crop}" in "${market}" APMC/market in India.
-        Also, find and include prices for at least 2 other NEAREST neighboring APMCs/markets to "${market}" for the same commodity.
-        For each market (the primary one and the 2 neighbors), find the historical modal price from yesterday.
-        Crucially, divide the price data into 3 distinct quality grades (Grade 1 being highest quality, Grade 3 being lowest). Find or estimate the prices for these grades PER 100 KG (PER QUINTAL).
-        Provide the data in a strict JSON array format, where each object has these fields:
-        {
-            "commodity": "string",
-            "market": "string",
-            "is_primary": "boolean (true for ${market}, false for neighbors)",
-            "state": "string",
-            "district": "string",
-            "grade1_price": "number (price per 100kg)",
-            "grade2_price": "number (price per 100kg)",
-            "grade3_price": "number (price per 100kg)",
-            "modal_price": "number (price per 100kg)",
-            "date": "string (YYYY-MM-DD)",
-            "historical_price_yesterday": "number (price per 100kg)",
-            "source": "string"
-        }
-        Return ONLY the array of JSON objects.`;
+        console.log(`[MARKET API] Fetching prices for "${crop}" at "${market}"`);
 
-        const response = await axios.post(
-            'https://api.perplexity.ai/chat/completions',
-            {
-                model: 'sonar',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a precise data extractor for agricultural market prices. You provide only raw JSON data based on terminal search results from Agmarknet or official sources.'
-                    },
-                    {
-                        role: 'user',
-                        content: query
+        // Step 0: Check MongoDB cache first for today's data
+        const cachedResults = await checkRecentCache(crop as string, market as string);
+        if (cachedResults) {
+            console.log(`[MARKET API] Returning cached results for ${crop}`);
+            return res.json(cachedResults);
+        }
+
+        // Step 1: Try official data.gov.in API first (most accurate)
+        let marketResults = await fetchFromDataGov(crop as string, market as string);
+        let dataSource = 'data.gov.in';
+
+        // Step 2: If no data for this market, try fetching nearby markets from same state
+        if (!marketResults || marketResults.length === 0) {
+            console.log('[MARKET API] No exact match from data.gov.in, trying nearby...');
+            const nearbyResults = await fetchNearbyFromDataGov(crop as string, '');
+            if (nearbyResults && nearbyResults.length > 0) {
+                // Deduplicate by market name
+                const seen = new Map();
+                for (const r of nearbyResults) {
+                    if (!seen.has(r.market)) {
+                        seen.set(r.market, r);
                     }
-                ],
-                temperature: 0.1,
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-                    'Content-Type': 'application/json'
+                }
+                const unique = Array.from(seen.values()).slice(0, 5);
+                if (unique.length > 0) {
+                    unique[0].is_primary = true;
+                    marketResults = unique;
                 }
             }
-        );
-
-        const rawContent = response.data.choices[0].message.content;
-        let jsonPayload = null;
-        let marketResults = null;
-
-        try {
-            const startIndex = rawContent.indexOf('[');
-            const endIndex = rawContent.lastIndexOf(']');
-
-            if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-                jsonPayload = rawContent.substring(startIndex, endIndex + 1);
-                marketResults = JSON.parse(jsonPayload);
-            } else {
-                throw new Error('No array brackets found in response');
-            }
-        } catch (e) {
-            console.error('[MARKET API] JSON Parse Error:', e);
-            console.error('[MARKET API] Problematic String:', jsonPayload || rawContent);
-            return res.status(500).json({ message: 'Error parsing market data list' });
         }
 
-        if (marketResults && Array.isArray(marketResults)) {
+        // Step 3: Fallback to Perplexity AI if official API has no data
+        if (!marketResults || marketResults.length === 0) {
+            console.log('[MARKET API] data.gov.in returned no data, falling back to Perplexity...');
+            marketResults = await fetchFromPerplexity(crop as string, market as string);
+            dataSource = 'Perplexity AI';
+        }
 
-            const processedResults = await Promise.all(marketResults.map(async (rawData: any) => {
-                const currentData = {
-                    ...rawData,
-                    grade1_price: parseFloat(rawData.grade1_price) || 0,
-                    grade2_price: parseFloat(rawData.grade2_price) || 0,
-                    grade3_price: parseFloat(rawData.grade3_price) || 0,
-                    modal_price: parseFloat(rawData.modal_price) || 0,
-                    historical_price_yesterday: parseFloat(rawData.historical_price_yesterday) || 0
-                };
+        if (!marketResults || marketResults.length === 0) {
+            return res.status(404).json({ message: `No market data found for ${crop} at ${market}. Try a different market or commodity.` });
+        }
 
-                let currentDate = new Date(currentData.date);
-                if (isNaN(currentDate.getTime())) {
-                    currentDate = new Date();
-                }
+        console.log(`[MARKET API] Got ${marketResults.length} results from ${dataSource}`);
 
-                // Store each market record
+        // Process results: store in DB and compute trends
+        const processedResults = await Promise.all(marketResults.map(async (rawData: any) => {
+            const currentData = {
+                ...rawData,
+                grade1_price: parseFloat(rawData.grade1_price) || 0,
+                grade2_price: parseFloat(rawData.grade2_price) || 0,
+                grade3_price: parseFloat(rawData.grade3_price) || 0,
+                modal_price: parseFloat(rawData.modal_price) || 0,
+                historical_price_yesterday: parseFloat(rawData.historical_price_yesterday) || 0
+            };
+
+            // Parse date
+            let currentDate: Date;
+            if (currentData.date && currentData.date.includes('/')) {
+                // Handle DD/MM/YYYY format from data.gov.in
+                const parts = currentData.date.split('/');
+                currentDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            } else {
+                currentDate = new Date(currentData.date);
+            }
+            if (isNaN(currentDate.getTime())) {
+                currentDate = new Date();
+            }
+            currentData.date = currentDate.toISOString().split('T')[0];
+
+            // Store each market record in DB
+            try {
                 await MarketPrice.findOneAndUpdate(
                     {
                         commodity: currentData.commodity,
@@ -117,37 +322,37 @@ router.get('/prices', authMiddleware, async (req, res) => {
                     { ...currentData, date: currentDate },
                     { upsert: true, returnDocument: 'after' }
                 );
+            } catch (dbErr) {
+                // Don't fail the request if DB storage fails
+                console.log('[MARKET API] DB store warning:', (dbErr as any).message);
+            }
 
-                // Fetch previous record from DB for this market
-                const dbPreviousPrice = await MarketPrice.findOne({
-                    commodity: currentData.commodity,
-                    market: currentData.market,
-                    date: { $lt: currentDate }
-                }).sort({ date: -1 });
+            // Fetch previous record from DB for trend calculation
+            const dbPreviousPrice = await MarketPrice.findOne({
+                commodity: currentData.commodity,
+                market: currentData.market,
+                date: { $lt: currentDate }
+            }).sort({ date: -1 }).catch(() => null);
 
-                const previousModalPrice = (dbPreviousPrice && dbPreviousPrice.modal_price > 0)
-                    ? dbPreviousPrice.modal_price
-                    : currentData.historical_price_yesterday;
+            const previousModalPrice = (dbPreviousPrice && dbPreviousPrice.modal_price > 0)
+                ? dbPreviousPrice.modal_price
+                : currentData.historical_price_yesterday;
 
-                let percentageChange = 0;
-                if (previousModalPrice && previousModalPrice > 0) {
-                    percentageChange = ((currentData.modal_price - previousModalPrice) / previousModalPrice) * 100;
-                }
+            let percentageChange = 0;
+            if (previousModalPrice && previousModalPrice > 0) {
+                percentageChange = ((currentData.modal_price - previousModalPrice) / previousModalPrice) * 100;
+            }
 
-                return {
-                    ...currentData,
-                    previous_modal_price: previousModalPrice || null,
-                    previous_date: dbPreviousPrice ? dbPreviousPrice.date.toISOString().split('T')[0] : 'Yesterday/Previous',
-                    percentage_change: percentageChange.toFixed(2),
-                    actual_trend: percentageChange > 0 ? 'up' : percentageChange < 0 ? 'down' : 'stable'
-                };
-            }));
+            return {
+                ...currentData,
+                previous_modal_price: previousModalPrice || null,
+                previous_date: dbPreviousPrice ? dbPreviousPrice.date.toISOString().split('T')[0] : 'Yesterday/Previous',
+                percentage_change: percentageChange.toFixed(2),
+                actual_trend: percentageChange > 0 ? 'up' : percentageChange < 0 ? 'down' : 'stable'
+            };
+        }));
 
-            res.json(processedResults);
-        } else {
-            console.error('[MARKET API] Invalid array format:', rawContent);
-            res.status(500).json({ message: 'Failed to parse market data list' });
-        }
+        res.json(processedResults);
     } catch (error: any) {
         console.error('Market API Error:', error.response?.data || error.message);
         res.status(500).json({ message: 'Error fetching market prices' });

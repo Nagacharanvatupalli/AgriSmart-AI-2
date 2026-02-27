@@ -16,7 +16,8 @@ import {
     ArrowUp,
     ArrowDown,
     ChevronDown,
-    Mic
+    Mic,
+    Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -114,6 +115,8 @@ const ALL_COMMODITIES = [
 
 import commodityTranslations from '../data/commodity_translations.json';
 import marketTranslations from '../data/market_translations.json';
+import locationTranslations from '../data/location_translations.json';
+import marketContacts from '../data/market_contacts.json';
 
 export default function MarketPage() {
     const { t, i18n } = useTranslation();
@@ -126,9 +129,37 @@ export default function MarketPage() {
     };
 
     const getTranslatedMarket = (market: string) => {
-        if (currentLang === 'en') return market;
+        if (!market || currentLang === 'en') return market;
         // @ts-ignore - dynamic key access
-        return marketTranslations[currentLang]?.[market] || market;
+        const translated = marketTranslations[currentLang]?.[market];
+        // Only return if it's actually different (skip identity mappings in JSON)
+        if (translated && translated !== market) return translated;
+
+        // Fallback to location translations (many markets are named after cities/districts)
+        return getTranslatedLocation(market);
+    };
+
+    const getTranslatedLocation = (location: string) => {
+        if (!location || currentLang === 'en') return location;
+        // @ts-ignore - dynamic key access
+        const langData = locationTranslations[currentLang];
+        if (!langData) return location;
+
+        // Normalize for Case Insensitivity (e.g. "ALLAHABAD" -> "Allahabad")
+        const titleCase = location.toLowerCase().split(' ').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+
+        return langData.states?.[location] ||
+            langData.districts?.[location] ||
+            langData.states?.[titleCase] ||
+            langData.districts?.[titleCase] ||
+            location;
+    };
+
+    const getMarketContact = (marketName: string) => {
+        // @ts-ignore - dynamic key access
+        return marketContacts[marketName] || null;
     };
 
     const [searchMarket, setSearchMarket] = useState(() => localStorage.getItem('market_location') || 'Guntur');
@@ -214,8 +245,19 @@ export default function MarketPage() {
 
 
     const filteredMarkets = ALL_MARKETS
-        .filter(m => m.toLowerCase().includes(marketSearchInput.toLowerCase()))
-        .slice(0, 100); // Limit results for performance
+        .filter(m => {
+            const englishMatch = m.toLowerCase().includes(marketSearchInput.toLowerCase());
+            const translatedMatch = getTranslatedMarket(m).toLowerCase().includes(marketSearchInput.toLowerCase());
+            return englishMatch || translatedMatch;
+        })
+        .slice(0, 100);
+
+    // Sync input text with selected market translation when language changes
+    useEffect(() => {
+        if (searchMarket) {
+            setMarketSearchInput(getTranslatedMarket(searchMarket));
+        }
+    }, [currentLang, searchMarket]);
 
     const filteredCommodities = Array.from(new Set(ALL_COMMODITIES
         .filter(crop => {
@@ -468,7 +510,7 @@ export default function MarketPage() {
                                     </div>
                                     <h3 className="text-2xl font-bold text-[#0a2635] mb-3">{t('market.no_data_title', 'No Price Data Available')}</h3>
                                     <p className="text-gray-400 font-medium max-w-md mb-2 leading-relaxed">
-                                        {t('market.no_data_desc_1', 'Price predictions for')} <span className="font-bold text-[#0a2635]">{getTranslatedCommodity(selectedCrop)}</span> {t('market.no_data_desc_2', 'are currently not available at')} <span className="font-bold text-[#0a2635]">{searchMarket || t('market.this_location', 'this location')}</span>.
+                                        {t('market.no_data_desc_1', 'Price predictions for')} <span className="font-bold text-[#0a2635]">{getTranslatedCommodity(selectedCrop)}</span> {t('market.no_data_desc_2', 'are currently not available at')} <span className="font-bold text-[#0a2635]">{searchMarket ? getTranslatedMarket(searchMarket) : t('market.this_location', 'this location')}</span>.
                                     </p>
                                     <p className="text-gray-400 text-sm italic max-w-sm mb-10">
                                         {t('market.try_another_search', 'Try searching for a different commodity or another market location.')}
@@ -520,14 +562,14 @@ export default function MarketPage() {
                                             <div className="w-full flex flex-col md:flex-row items-start justify-between gap-6">
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('market.selected_market')}</p>
-                                                    <h3 className="text-3xl font-bold text-[#0a2635] tracking-tight">{primaryMarket.market}</h3>
+                                                    <h3 className="text-3xl font-bold text-[#0a2635] tracking-tight">{getTranslatedMarket(primaryMarket.market)}</h3>
                                                 </div>
                                                 <div className="flex flex-col md:flex-row gap-4">
                                                     <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                                                         <MapPin className="text-gray-400" size={20} />
                                                         <div>
                                                             <p className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">{t('market.location')}</p>
-                                                            <p className="text-sm font-bold text-gray-700">{primaryMarket.district}, {primaryMarket.state}</p>
+                                                            <p className="text-sm font-bold text-gray-700">{getTranslatedLocation(primaryMarket.district)}, {getTranslatedLocation(primaryMarket.state)}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100">
@@ -537,6 +579,24 @@ export default function MarketPage() {
                                                             <p className="text-sm font-bold text-gray-700">{new Date(primaryMarket.date).toLocaleDateString()}</p>
                                                         </div>
                                                     </div>
+                                                    {getMarketContact(primaryMarket.market) && (
+                                                        <a
+                                                            href={`tel:${getMarketContact(primaryMarket.market)!.phone}`}
+                                                            className="flex items-center gap-3 p-4 rounded-2xl bg-[#00ab55]/5 border border-[#00ab55]/10 hover:bg-[#00ab55]/10 transition-colors cursor-pointer group"
+                                                        >
+                                                            <div className="w-10 h-10 bg-[#00ab55]/10 rounded-xl flex items-center justify-center group-hover:bg-[#00ab55]/20 transition-colors">
+                                                                <Phone className="text-[#00ab55]" size={18} />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[10px] font-bold text-[#00ab55] uppercase leading-none mb-1">{t('market.market_contact', 'Market Contact')}</p>
+                                                                <p className="text-sm font-bold text-[#0a2635] truncate">{getMarketContact(primaryMarket.market)!.head}</p>
+                                                                <p className="text-[10px] text-gray-400 font-medium">{getMarketContact(primaryMarket.market)!.role}</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-sm font-bold text-[#00ab55]">{getMarketContact(primaryMarket.market)!.phone}</p>
+                                                            </div>
+                                                        </a>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -549,7 +609,7 @@ export default function MarketPage() {
                                                     {marketData.filter(m => !m.is_primary).map((m, i) => (
                                                         <div key={i} className="p-4 rounded-[24px] bg-gray-50 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-100 group">
                                                             <div className="flex justify-between items-start mb-2">
-                                                                <p className="text-sm font-bold text-[#0a2635] leading-tight">{m.market}</p>
+                                                                <p className="text-sm font-bold text-[#0a2635] leading-tight">{getTranslatedMarket(m.market)}</p>
                                                                 <span className={cn(
                                                                     "text-[8px] font-black px-1.5 py-0.5 rounded-full",
                                                                     parseFloat(m.percentage_change || '0') >= 0 ? "bg-[#00ab55]/10 text-[#00ab55]" : "bg-red-50 text-red-500"
@@ -558,9 +618,15 @@ export default function MarketPage() {
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between items-end">
-                                                                <p className="text-[10px] text-gray-400 font-medium">{m.district}</p>
+                                                                <p className="text-[10px] text-gray-400 font-medium">{getTranslatedLocation(m.district)}</p>
                                                                 <p className="text-lg font-black text-[#00ab55]">₹{m.grade1_price} <span className="text-[10px] text-gray-400 font-normal ml-1">/ 100kg</span></p>
                                                             </div>
+                                                            {getMarketContact(m.market) && (
+                                                                <a href={`tel:${getMarketContact(m.market)!.phone}`} className="mt-2 flex items-center gap-2 text-[10px] text-[#00ab55] font-semibold hover:underline">
+                                                                    <Phone size={10} />
+                                                                    {getMarketContact(m.market)!.phone} — {getMarketContact(m.market)!.head}
+                                                                </a>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
