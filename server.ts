@@ -1,14 +1,14 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import authRoutes from './server/routes/auth';
 import diagnosisRoutes from './server/routes/diagnosis';
 import adminRoutes from './server/routes/admin';
 import marketRoutes from './server/routes/market';
 import os from 'os';
-
-dotenv.config();
 
 async function startServer() {
   const app = express();

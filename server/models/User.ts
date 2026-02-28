@@ -18,13 +18,18 @@ interface IUser extends Document {
     cropName: string;
     addedAt: Date;
   }[];
+  cropDetails?: {
+    cropName?: string;
+    startDate?: Date;
+    endDate?: Date;
+  };
   lastSmsSent?: Date;
 }
 
 const UserSchema = new mongoose.Schema({
-  mobile: { type: String, required: true, unique: true },
+  mobile: { type: String, unique: true, sparse: true },
   email: { type: String },
-  password: { type: String, required: true },
+  password: { type: String },
   profile: {
     firstName: String,
     lastName: String,
@@ -39,6 +44,11 @@ const UserSchema = new mongoose.Schema({
     cropName: String,
     addedAt: { type: Date, default: Date.now }
   }],
+  cropDetails: {
+    cropName: String,
+    startDate: Date,
+    endDate: Date
+  },
   lastSmsSent: { type: Date },
 }, { timestamps: true });
 
