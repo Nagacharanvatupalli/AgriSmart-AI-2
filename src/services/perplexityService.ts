@@ -13,13 +13,13 @@ const LANG_NAME: Record<string, string> = {
     ta: 'Tamil'
 };
 
-export const getPerplexityAdvice = async (query: string, language = 'en') => {
+export const getPerplexityAdvice = async (query: string, language = 'en', userContext?: any) => {
     if (!PERPLEXITY_API_KEY) {
         console.error('Perplexity API key is missing');
         throw new Error('Perplexity API key is missing');
     }
 
-    const cacheKey = `${language}::${query}`;
+    const cacheKey = `${language}::${query}::${JSON.stringify(userContext || {})}`;
     const cached = adviceCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
         return cached.text;
@@ -27,6 +27,16 @@ export const getPerplexityAdvice = async (query: string, language = 'en') => {
 
     try {
         const languageName = LANG_NAME[language] || 'English';
+
+        let contextText = '';
+        if (userContext) {
+            const loc = userContext.location ? `${userContext.location.district}, ${userContext.location.state}` : '';
+            const crops = userContext.crops?.map((c: any) => c.cropName).join(', ') || '';
+            if (loc || crops) {
+                contextText = ` The user is located in ${loc || 'unknown location'}. Their registered crops are: ${crops || 'none'}. Use this information to provide highly relevant advice.`;
+            }
+        }
+
         const response = await axios.post(
             'https://api.perplexity.ai/chat/completions',
             {
@@ -34,7 +44,7 @@ export const getPerplexityAdvice = async (query: string, language = 'en') => {
                 messages: [
                     {
                         role: 'system',
-                        content: `You are an expert agricultural consultant. Give "gunshot" answers—short, direct, and actionable. EXTREME BREVITY IS REQUIRED. If the user asks for a price, return ONLY the price or a very short sentence. DO NOT include citations, footnotes, or bracketed numbers like [1], [2], etc. Respond in ${languageName}.`
+                        content: `You are an expert agricultural consultant.${contextText} Give "gunshot" answers—short, direct, and actionable. EXTREME BREVITY IS REQUIRED. If the user asks for a price, return ONLY the price or a very short sentence. DO NOT include citations, footnotes, or bracketed numbers like [1], [2], etc. Respond in ${languageName}.`
                     },
                     {
                         role: 'user',

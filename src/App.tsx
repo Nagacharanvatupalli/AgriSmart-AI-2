@@ -506,7 +506,7 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      let response = await getPerplexityAdvice(userMsg, i18n.language || 'en');
+      let response = await getPerplexityAdvice(userMsg, i18n.language || 'en', fullUser);
       // Failsafe: Remove citation brackets [1], [2], etc.
       if (response) {
         response = response.replace(/\[\d+\]/g, '').trim();
