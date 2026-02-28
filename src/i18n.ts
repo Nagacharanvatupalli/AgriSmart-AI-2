@@ -212,7 +212,15 @@ const resources = {
                 "try_another_search": "Try searching for a different commodity or another market location.",
                 "try_again_btn": "TRY AGAIN",
                 "begin_search_title": "Begin Your Market Search",
-                "begin_search_desc": "Select a commodity from the sidebar to view live wholesale prices and historical trends across Indian markets."
+                "begin_search_desc": "Select a commodity from the sidebar to view live wholesale prices and historical trends across Indian markets.",
+                "no_official_data_desc": "We couldn't find any official real-time price records for",
+                "at": "at",
+                "today": "today",
+                "official_only_notice": "Only verified data from Agmarknet is displayed to ensure accuracy.",
+                "retry_search": "RETRY SEARCH",
+                "change_crop": "CHANGE CROP",
+                "data_source": "Verified Official Source",
+                "near_you": "Near You"
             },
             "crops_page": {
                 "title": "Crop Encyclopedia",

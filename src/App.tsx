@@ -575,7 +575,7 @@ export default function App() {
             />
           </ProtectedRoute>
         } />
-        <Route path="/market" element={<MarketPage />} />
+        <Route path="/market" element={<MarketPage user={fullUser} />} />
         <Route path="/crops" element={<CropsPage />} />
         <Route path="/weather" element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
