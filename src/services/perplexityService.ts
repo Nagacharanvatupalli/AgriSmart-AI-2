@@ -122,3 +122,51 @@ export const detectCropDisease = async (base64Image: string, mimeType: string, l
         throw error;
     }
 };
+
+export const getShortCropAdvice = async (
+    cropName: string,
+    language: string = 'en',
+    location?: string
+): Promise<string> => {
+    if (!PERPLEXITY_API_KEY) {
+        return "Ensure proper irrigation and monitor for early signs of pests.";
+    }
+
+    try {
+        const languageName = LANG_NAME[language] || 'English';
+        const context = location ? `The farmer is located in ${location}.` : '';
+
+        const systemText = `You are an expert agronomist giving a quick daily tip. Give exactly ONE highly actionable, concise tip (2-3 sentences max) for growing ${cropName}. ${context} Focus on common risks or key actions for this crop. DO NOT use formatting like bold or bullet points. Provide the tip directly in ${languageName}.`;
+
+        const response = await axios.post(
+            'https://api.perplexity.ai/chat/completions',
+            {
+                model: 'sonar',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemText
+                    },
+                    {
+                        role: 'user',
+                        content: `Give me a daily tip for my ${cropName} crop.`
+                    }
+                ],
+                temperature: 0.7,
+                top_p: 0.9,
+                max_tokens: 200,
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        return response.data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error("Error fetching short crop advice:", error);
+        return "Ensure proper irrigation and monitor for early signs of pests.";
+    }
+};
