@@ -23,6 +23,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getWeatherData } from '../services/weatherService';
 import { useTranslation } from 'react-i18next';
+import CropSuggestionsModal from './CropSuggestionsModal';
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -113,6 +114,23 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
     const [marketData, setMarketData] = useState<any>(null);
     const [marketLoading, setMarketLoading] = useState(false);
     const [marketError, setMarketError] = useState<string | null>(null);
+
+    const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
+
+    // Initial popup load logic
+    useEffect(() => {
+        if (user && user.crops && user.crops.length > 0) {
+            const hasShown = sessionStorage.getItem('cropSuggestionsShown');
+            if (!hasShown) {
+                // Short delay so it feels like a post-login action naturally settling in
+                const timer = setTimeout(() => {
+                    setShowSuggestionsModal(true);
+                    sessionStorage.setItem('cropSuggestionsShown', 'true');
+                }, 1500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [user?.crops]);
 
     useEffect(() => {
         if (!user?.location) return;
@@ -832,6 +850,14 @@ export default function DashboardPage({ userName, onImageUpload, fileInputRef, u
                         </div>
                     </motion.div>
                 </div>
+            )}
+
+            {showSuggestionsModal && (
+                <CropSuggestionsModal
+                    crops={user?.crops || []}
+                    location={user?.location?.district || ''}
+                    onClose={() => setShowSuggestionsModal(false)}
+                />
             )}
         </div>
     );
