@@ -20,39 +20,22 @@ interface DiagnosisPageProps {
     diagnosisResult: string | null;
     onReset: () => void;
     isLoggedIn: boolean;
-}
-
-function generateCaseId(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+    caseId: string;
 }
 
 type ViewMode = 'REPORT' | 'HISTORY';
 
-export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputRef, isAnalyzing, diagnosisResult, onReset, isLoggedIn }: DiagnosisPageProps) {
+export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputRef, isAnalyzing, diagnosisResult, onReset, isLoggedIn, caseId }: DiagnosisPageProps) {
     const { t } = useTranslation();
     const [history, setHistory] = useState<DiagnosisRecord[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-    const [caseId] = useState(() => generateCaseId());
-    const [saved, setSaved] = useState(false);
     const [viewingRecord, setViewingRecord] = useState<DiagnosisRecord | null>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('REPORT');
 
-    // Fetch history on mount if logged in
+    // Fetch history on mount and when a new diagnosis is complete
     useEffect(() => {
         if (isLoggedIn) fetchHistory();
-    }, [isLoggedIn]);
-
-    // Auto-save to MongoDB when diagnosisResult becomes available
-    useEffect(() => {
-        if (diagnosisResult && selectedImage && isLoggedIn && !saved && !diagnosisResult.startsWith('Error')) {
-            saveAndRefresh();
-        }
-    }, [diagnosisResult]);
+    }, [isLoggedIn, diagnosisResult]);
 
     // If new diagnosis comes in, switch to report view
     useEffect(() => {
@@ -61,37 +44,6 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
             setViewingRecord(null); // Clear viewing historical record to show current
         }
     }, [diagnosisResult]);
-
-    const saveAndRefresh = async () => {
-        await saveDiagnosis();
-        await fetchHistory();
-    };
-
-    const saveDiagnosis = async () => {
-        const token = localStorage.getItem('token');
-        if (!token || !selectedImage || !diagnosisResult) return;
-
-        try {
-            const response = await fetch('/api/diagnosis', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-auth-token': token,
-                },
-                body: JSON.stringify({
-                    imageBase64: selectedImage,
-                    diagnosisResult,
-                    caseId,
-                }),
-            });
-
-            if (response.ok) {
-                setSaved(true);
-            }
-        } catch (error) {
-            console.error('Error saving diagnosis:', error);
-        }
-    };
 
     const fetchHistory = async () => {
         const token = localStorage.getItem('token');
@@ -182,16 +134,25 @@ export default function DiagnosisPage({ selectedImage, onImageUpload, fileInputR
                         )}
 
                         <div className="pt-4 border-t border-gray-50">
-                            <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-4">{t('diagnosis.diagnostics_console')}</p>
+                            <div className="flex items-center justify-between mb-4">
+                                <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{t('diagnosis.diagnostics_console')}</p>
+                                {isAnalyzing && (
+                                    <span className="text-[9px] font-black text-[#00ab55] bg-[#00ab55]/10 px-2 py-0.5 rounded-full animate-pulse">
+                                        ~15s Estimated
+                                    </span>
+                                )}
+                            </div>
                             {isAnalyzing ? (
                                 <div className="flex items-center gap-3 text-[#00ab55]">
                                     <Loader2 className="animate-spin" size={16} />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest animate-pulse">{t('diagnosis.analyzing')}</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{t('diagnosis.analyzing')}</span>
                                 </div>
                             ) : diagnosisResult ? (
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-bold text-gray-500">{t('diagnosis.scan_complete')}</span>
-                                    {saved && <span className="text-[9px] font-black text-[#00ab55] bg-[#00ab55]/10 px-2 py-0.5 rounded-full">{t('diagnosis.saved')}</span>}
+                                    {isLoggedIn && !diagnosisResult.startsWith('Error') && (
+                                        <span className="text-[9px] font-black text-[#00ab55] bg-[#00ab55]/10 px-2 py-0.5 rounded-full">{t('diagnosis.saved')}</span>
+                                    )}
                                 </div>
                             ) : (
                                 <span className="text-[10px] font-bold text-gray-400 italic">{t('diagnosis.waiting')}</span>

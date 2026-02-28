@@ -239,6 +239,15 @@ function ProtectedRoute({ isLoggedIn, children }: { isLoggedIn: boolean; childre
   return <>{children}</>;
 }
 
+function generateCaseId(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 // ── Main App Component ────────────────────────────────────────────────────────
 
 export default function App() {
@@ -259,6 +268,7 @@ export default function App() {
   const [userName, setUserName] = useState('');
   const [fullUser, setFullUser] = useState<any>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [currentCaseId, setCurrentCaseId] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -479,6 +489,8 @@ export default function App() {
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
+      const newCaseId = generateCaseId();
+      setCurrentCaseId(newCaseId);
       setSelectedImage(base64);
       setIsAnalyzing(true);
       navigate('/diagnosis');
@@ -487,6 +499,25 @@ export default function App() {
         // Direct expert diagnosis using Perplexity Vision
         const result = await detectCropDisease(base64.split(',')[1], file.type, i18n.language || 'en');
         setDiagnosisResult(result || "Could not generate diagnosis.");
+
+        // Auto-save result if genuine
+        if (result && !result.startsWith('Error')) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            await fetch('/api/diagnosis', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token,
+              },
+              body: JSON.stringify({
+                imageBase64: base64,
+                diagnosisResult: result,
+                caseId: newCaseId,
+              }),
+            }).catch(console.error);
+          }
+        }
       } catch (error) {
         console.error("Diagnosis flow error:", error);
         setDiagnosisResult("Error analyzing image. Please try again.");
@@ -558,8 +589,9 @@ export default function App() {
               fileInputRef={fileInputRef}
               isAnalyzing={isAnalyzing}
               diagnosisResult={diagnosisResult}
-              onReset={() => { setSelectedImage(null); setDiagnosisResult(null); }}
+              onReset={() => { setSelectedImage(null); setDiagnosisResult(null); setCurrentCaseId(''); }}
               isLoggedIn={isLoggedIn}
+              caseId={currentCaseId}
             />
           </ProtectedRoute>
         } />
