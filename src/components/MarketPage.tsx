@@ -17,9 +17,11 @@ import {
     ArrowDown,
     ChevronDown,
     Mic,
-    Phone
+    Phone,
+    Volume2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ttsService } from '../services/ttsService';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ALL_MARKETS } from '../data/markets';
@@ -458,9 +460,11 @@ export default function MarketPage() {
                                             onClick={() => {
                                                 setSelectedCrop(crop); // Keep original english name as value
                                                 fetchMarketPrices(crop, searchMarket);
+                                                const translated = getTranslatedCommodity(crop);
+                                                ttsService.speak(translated, i18n.language);
                                             }}
                                             className={cn(
-                                                "flex items-center justify-between px-5 py-3.5 rounded-2xl text-xs font-bold transition-all text-left",
+                                                "flex items-center justify-between px-5 py-3.5 rounded-2xl text-xs font-bold transition-all text-left cursor-pointer",
                                                 selectedCrop === crop
                                                     ? "bg-[#00ab55]/5 text-[#00ab55] border border-[#00ab55]/20 ring-1 ring-[#00ab55]/10"
                                                     : "text-gray-500 hover:bg-gray-50 border border-transparent"
@@ -508,7 +512,7 @@ export default function MarketPage() {
                                     <div className="w-20 h-20 bg-[#00ab55]/5 rounded-[32px] flex items-center justify-center text-[#00ab55] mb-8">
                                         <MapPin size={32} />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-[#0a2635] mb-3">{t('market.no_data_title', 'No Price Data Available')}</h3>
+                                    <h3 className="text-2xl font-bold text-[#0a2635] mb-3">{t('market.no_data_found')}</h3>
                                     <p className="text-gray-400 font-medium max-w-md mb-2 leading-relaxed">
                                         {t('market.no_data_desc_1', 'Price predictions for')} <span className="font-bold text-[#0a2635]">{getTranslatedCommodity(selectedCrop)}</span> {t('market.no_data_desc_2', 'are currently not available at')} <span className="font-bold text-[#0a2635]">{searchMarket ? getTranslatedMarket(searchMarket) : t('market.this_location', 'this location')}</span>.
                                     </p>
@@ -539,6 +543,7 @@ export default function MarketPage() {
                                             trend="stable"
                                             icon={<ArrowUp className="text-[#00ab55]" size={24} />}
                                             highlight
+                                            lang={i18n.language}
                                         />
                                         <PriceStat
                                             label={t('market.grade2_price', 'Grade 2 Price')}
@@ -546,6 +551,7 @@ export default function MarketPage() {
                                             sub={t('market.grade2_quality', 'Standard Quality (per 100kg)')}
                                             trend="stable"
                                             icon={<Minus className="text-blue-500" size={24} />}
+                                            lang={i18n.language}
                                         />
                                         <PriceStat
                                             label={t('market.grade3_price', 'Grade 3 Price')}
@@ -553,6 +559,7 @@ export default function MarketPage() {
                                             sub={t('market.grade3_quality', 'Lower Quality (per 100kg)')}
                                             trend="down"
                                             icon={<ArrowDown className="text-red-400" size={24} />}
+                                            lang={i18n.language}
                                         />
                                     </div>
 
@@ -599,6 +606,16 @@ export default function MarketPage() {
                                                     )}
                                                 </div>
                                             </div>
+                                            <button
+                                                onClick={() => {
+                                                    const text = `${t('market.selected_market')}: ${getTranslatedMarket(primaryMarket.market)}. ${t('market.location')}: ${getTranslatedLocation(primaryMarket.district)}, ${getTranslatedLocation(primaryMarket.state)}.`;
+                                                    ttsService.speak(text, i18n.language);
+                                                }}
+                                                className="mt-6 flex items-center gap-2 text-xs font-bold text-[#00ab55]/60 hover:text-[#00ab55] transition-colors"
+                                            >
+                                                <Volume2 size={14} />
+                                                {t('market.speak_details', 'Listen to market details')}
+                                            </button>
                                         </div>
 
                                         {/* Nearby Markets Side Panel */}
@@ -658,12 +675,18 @@ export default function MarketPage() {
     );
 }
 
-function PriceStat({ label, price, sub, trend, percentage, icon, highlight }: any) {
+function PriceStat({ label, price, sub, trend, percentage, icon, highlight, lang }: any) {
     return (
-        <div className={cn(
-            "p-8 rounded-[40px] border transition-all hover:scale-[1.02] relative group overflow-hidden",
-            highlight ? "bg-white border-[#00ab55]/20 shadow-xl shadow-[#00ab55]/5" : "bg-white border-gray-100 shadow-sm"
-        )}>
+        <motion.div
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+                const text = `${label}: ₹${price}. ${sub}`;
+                ttsService.speak(text, lang);
+            }}
+            className={cn(
+                "p-8 rounded-[40px] border transition-all hover:scale-[1.02] relative group overflow-hidden cursor-pointer",
+                highlight ? "bg-white border-[#00ab55]/20 shadow-xl shadow-[#00ab55]/5" : "bg-white border-gray-100 shadow-sm"
+            )}>
             {highlight && (
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12 group-hover:opacity-[0.05] transition-opacity">
                     <TrendingUp size={120} />
@@ -697,6 +720,6 @@ function PriceStat({ label, price, sub, trend, percentage, icon, highlight }: an
                 <h4 className="text-4xl font-bold text-[#0a2635] tracking-tighter">₹{price}</h4>
                 <p className="text-xs font-medium italic text-gray-500 mt-2">{sub}</p>
             </div>
-        </div>
+        </motion.div>
     );
 }

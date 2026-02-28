@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowUpRight, Search, X, Copy, Check } from 'lucide-react';
+import { ttsService } from '../services/ttsService';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -311,7 +312,7 @@ const crops: Crop[] = [
 ];
 
 export default function CropsPage() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
     const [copied, setCopied] = useState(false);
@@ -359,7 +360,12 @@ export default function CropsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="group bg-white rounded-[40px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
+                            onClick={() => {
+                                const name = t(`crops_page.data.${crop.id}.name`, { defaultValue: crop.name });
+                                const desc = t(`crops_page.data.${crop.id}.desc`, { defaultValue: crop.description });
+                                ttsService.speak(`${name}. ${desc}`, i18n.language);
+                            }}
+                            className="group bg-white rounded-[40px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 cursor-pointer"
                         >
                             <div className="relative h-64 overflow-hidden">
                                 <img

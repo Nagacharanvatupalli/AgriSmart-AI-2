@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Sprout, Target, Lightbulb, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import CropStatusBanner from './CropStatusBanner';
 
-export default function Home() {
+export default function Home({ user }: { user?: any }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -145,6 +146,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <CropStatusBanner user={user} />
     </div>
   );
 }

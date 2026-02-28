@@ -123,7 +123,7 @@ function WeatherPage({ location, weatherData, isLoading, error, onRetry, onLocat
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 bg-red-50 rounded-[40px] border border-dashed border-red-200 text-center px-6">
             <X className="text-red-400 mb-4" size={48} />
-            <h3 className="text-xl font-bold text-red-900 mb-2">{t('weather.error_title')}</h3>
+            <h3 className="text-xl font-bold text-red-900 mb-2">{t('weather.no_data_found')}</h3>
             <p className="text-red-600/70 mb-8 max-w-sm">{error}</p>
             <button
               onClick={onRetry}
@@ -243,7 +243,7 @@ function ProtectedRoute({ isLoggedIn, children }: { isLoggedIn: boolean; childre
 
 export default function App() {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [diagnosisResult, setDiagnosisResult] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -449,10 +449,10 @@ export default function App() {
         localStorage.setItem('lastWeatherFetch', Date.now().toString());
         localStorage.setItem('lastWeatherLocation', location);
       } else {
-        setWeatherError("Could not find weather data for your location.");
+        setWeatherError(t('weather.no_data_found'));
       }
     } catch (err) {
-      setWeatherError("Failed to connect to weather service.");
+      setWeatherError(t('weather.no_data_found'));
     } finally {
       setIsWeatherLoading(false);
     }
@@ -523,7 +523,7 @@ export default function App() {
     <div className="bg-white min-h-screen">
       {!isAuthPage && <Navbar isLoggedIn={isLoggedIn} userName={userName} onLogout={handleLogout} />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home user={fullUser} />} />
         <Route path="/login" element={<AuthPage onAuthSuccess={(name?: string, user?: any) => {
           setIsLoggedIn(true);
           setUserName(name || '');

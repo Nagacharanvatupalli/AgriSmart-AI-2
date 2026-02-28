@@ -31,7 +31,8 @@ const resources = {
                 "try_again": "TRY AGAIN",
                 "no_location": "Please enter your village name in your profile settings.",
                 "search_placeholder": "Search for village or city...",
-                "search_button": "Search"
+                "search_button": "Search",
+                "no_data_found": "Data Not Found"
             },
             "dashboard": {
                 "title": "Farm Management",
@@ -134,6 +135,27 @@ const resources = {
                 "privacy_policy": "Privacy Policy",
                 "contact_link": "Contact"
             },
+            "crop_status": {
+                "no_crops_title": "No Crops Selected",
+                "no_crops_message": "You have selected no crops yet. Please select your crop.",
+                "boost_yield": "Boost Yield",
+                "prevention": "Prevention",
+                "monitoring": "Monitoring your crop...",
+                "heavy_rain_threat": "Heavy rain expected",
+                "heavy_rain_suggestion": "Delay fertilizer application.",
+                "high_temp_threat": "High temperature alert",
+                "high_temp_suggestion": "Irrigate in the evening.",
+                "paddy_suggestion": "Maintain 2-5cm standing water.",
+                "cotton_suggestion": "Check for whitefly infestation.",
+                "prod_tip_default": "Rotate crops to maintain soil fertility.",
+                "prod_tip_paddy": "Use Azolla as bio-fertilizer to increase yield by 15-20%.",
+                "prod_tip_cotton": "Implement high-density planting system for better yield.",
+                "prod_tip_maize": "Intercrop with soybean to improve nitrogen levels.",
+                "history_advice_default": "Check for pest signs regularly based on local trends.",
+                "history_advice_fungal": "Past fungal issue detected. Avoid excessive nitrogen and keep field drained.",
+                "history_advice_pest": "Previous pest attack noted. Set up pheromone traps early this season.",
+                "history_advice_recurrence": "Preventing recurrence of: {{disease}}"
+            },
             "assistant": {
                 "title": "AI Advice",
                 "subtitle": "Your personalized agricultural consultant.",
@@ -204,6 +226,7 @@ const resources = {
                 "trend_up": "{{crop}} prices are on an upward trend. Good time to liquidate.",
                 "trend_stable": "Market shows stability in {{crop}} prices. Monitor for next 48 hours.",
                 "avg_price": "Avg. price for {{crop}}",
+                "no_data_found": "Data Not Found",
                 "no_markets_found": "No markets found",
                 "no_data_title": "No Price Data Available",
                 "no_data_desc_1": "Price predictions for",
@@ -450,7 +473,8 @@ const resources = {
                 "try_again": "మళ్ళీ ప్రయత్నించండి",
                 "no_location": "దయచేసి మీ ప్రొఫైల్ సెట్టింగ్‌లలో మీ గ్రామం పేరును నమోదు చేయండి.",
                 "search_placeholder": "గ్రామం లేదా నగరం కోసం వెతకండి...",
-                "search_button": "వెతకండి"
+                "search_button": "వెతకండి",
+                "no_data_found": "డేటా కనుగొనబడలేదు"
             },
             "dashboard": {
                 "title": "వ్యవసాయ నిర్వహణ",
@@ -553,6 +577,27 @@ const resources = {
                 "privacy_policy": "గోప్యతా విధానం",
                 "contact_link": "సంప్రదించండి"
             },
+            "crop_status": {
+                "no_crops_title": "పంటలు ఏవీ ఎంచుకోలేదు",
+                "no_crops_message": "మీరు ఇంకా ఏ పంటలను ఎంచుకోలేదు. దయచేసి మీ పంటను ఎంచుకోండి.",
+                "boost_yield": "దిగుబడిని పెంచండి",
+                "prevention": "నివారణ",
+                "monitoring": "మీ పంటను పర్యవేక్షిస్తున్నాము...",
+                "heavy_rain_threat": "భారీ వర్షం కురిసే అవకాశం ఉంది",
+                "heavy_rain_suggestion": "ఎరువుల వినియోగాన్ని వాయిదా వేయండి.",
+                "high_temp_threat": "అధిక ఉష్ణోగ్రత హెచ్చరిక",
+                "high_temp_suggestion": "సాయంత్రం వేళల్లో నీరు పెట్టండి.",
+                "paddy_suggestion": "2-5 సెం.మీ నిలకడగా ఉన్న నీటిని నిర్వహించండి.",
+                "cotton_suggestion": "తెల్లదోమ ఉధృతిని తనిఖీ చేయండి.",
+                "prod_tip_default": "నేల సారవంతాన్ని కాపాడుకోవడానికి పంట మార్పిడి చేయండి.",
+                "prod_tip_paddy": "దిగుబడిని 15-20% పెంచడానికి అజొల్లాను జీవ ఎరువుగా ఉపయోగించండి.",
+                "prod_tip_cotton": "మెరుగైన దిగుబడి కోసం అధిక సాంద్రత గల నాటడం పద్ధతిని అమలు చేయండి.",
+                "prod_tip_maize": "నైట్రోజన్ స్థాయిలను మెరుగుపరచడానికి సోయాబీన్‌తో అంతర పంటగా సాగు చేయండి.",
+                "history_advice_default": "స్థానిక ధోరణుల ఆధారంగా క్రమం తప్పకుండా తెగుళ్ల సంకేతాలను తనిఖీ చేయండి.",
+                "history_advice_fungal": "గతంలో శిలీంధ్ర సమస్య గుర్తించబడింది. అధిక నైట్రోజన్‌ను నివారించండి మరియు పొలాన్ని పొడిగా ఉంచండి.",
+                "history_advice_pest": "గతంలో తెగుళ్ల దాడి గమనించబడింది. ఈ సీజన్ ప్రారంభంలోనే ఫెరోమోన్ ట్రాప్‌లను ఏర్పాటు చేయండి.",
+                "history_advice_recurrence": "తిరిగి రాకుండా నివారిస్తున్నాము: {{disease}}"
+            },
             "assistant": {
                 "title": "AI సలహా",
                 "subtitle": "మీ వ్యక్తిగత వ్యవసాయ కన్సల్టెంట్.",
@@ -623,6 +668,7 @@ const resources = {
                 "trend_up": "{{crop}} ధరలు పెరుగుదల ధోరణిలో ఉన్నాయి. అమ్మకానికి ఇది మంచి సమయం.",
                 "trend_stable": "{{crop}} ధరలలో స్థిరత్వం కనిపిస్తోంది. తదుపరి 48 గంటల పాటు పర్యవేక్షించండి.",
                 "avg_price": "{{crop}}కు సగటు ధర",
+                "no_data_found": "డేటా కనుగొనబడలేదు",
                 "no_markets_found": "మార్కెట్లు కనుగొనబడలేదు",
                 "no_data_title": "ధరల సమాచారం అందుబాటులో లేదు",
                 "no_data_desc_1": "మీరు ఎంచుకున్న",
@@ -869,7 +915,8 @@ const resources = {
                 "try_again": "पुनः प्रयास करें",
                 "no_location": "कृपया अपनी प्रोफाइल सेटिंग्स में अपने गांव का नाम दर्ज करें।",
                 "search_placeholder": "गांव या शहर खोजें...",
-                "search_button": "खोजें"
+                "search_button": "खोजें",
+                "no_data_found": "डेटा नहीं मिला"
             },
             "dashboard": {
                 "title": "कृषि प्रबंधन",
@@ -972,6 +1019,27 @@ const resources = {
                 "privacy_policy": "गोपनीयता नीति",
                 "contact_link": "संपर्क करें"
             },
+            "crop_status": {
+                "no_crops_title": "कोई फसल नहीं चुनी गई",
+                "no_crops_message": "आपने अभी तक कोई फसल नहीं चुनी है। कृपया अपनी फसल चुनें।",
+                "boost_yield": "पैदावार बढ़ाएं",
+                "prevention": "रोकथाम",
+                "monitoring": "आपकी फसल की निगरानी की जा रही है...",
+                "heavy_rain_threat": "भारी बारिश की संभावना",
+                "heavy_rain_suggestion": "उर्वरक डालने में देरी करें।",
+                "high_temp_threat": "उच्च तापमान की चेतावनी",
+                "high_temp_suggestion": "शाम को सिंचाई करें।",
+                "paddy_suggestion": "2-5 सेमी खड़ा पानी बनाए रखें।",
+                "cotton_suggestion": "सफेद मक्खी के प्रकोप की जाँच करें।",
+                "prod_tip_default": "मिट्टी की उर्वरता बनाए रखने के लिए फसल चक्र अपनाएं।",
+                "prod_tip_paddy": "पैदावार 15-20% बढ़ाने के लिए अज़ोला का जैव-उर्वरक के रूप में उपयोग करें।",
+                "prod_tip_cotton": "बेहतर पैदावार के लिए उच्च घनत्व रोपण प्रणाली लागू करें।",
+                "prod_tip_maize": "नाइट्रोजन स्तर में सुधार के लिए सोयाबीन के साथ अंतर-फसल उगाएं।",
+                "history_advice_default": "स्थानीय रुझानों के आधार पर नियमित रूप से कीटों के संकेतों की जाँच करें।",
+                "history_advice_fungal": "पिछली कवक समस्या का पता चला। अत्यधिक नाइट्रोजन से बचें और खेत को सूखा रखें।",
+                "history_advice_pest": "पिछला कीट हमला देखा गया। इस सीजन की शुरुआत में फेरोमोन ट्रैप लगाएं।",
+                "history_advice_recurrence": "पुनरावृत्ति को रोकना: {{disease}}"
+            },
             "assistant": {
                 "title": "AI सलाह",
                 "subtitle": "आपका व्यक्तिगत कृषि सलाहकार।",
@@ -1041,7 +1109,8 @@ const resources = {
                 "price_gap": "न्यूनतम/अधिकतम के बीच मूल्य अंतर ₹{{gap}} है। गुणवत्ता ग्रेड मायने रखता है।",
                 "trend_up": "{{crop}} की कीमतें बढ़ रही हैं। बेचने का अच्छा समय है।",
                 "trend_stable": "{{crop}} की कीमतों में स्थिरता दिख रही है। अगले 48 घंटों तक निगरानी रखें।",
-                "avg_price": "{{crop}} के लिए औसत मूल्य"
+                "avg_price": "{{crop}} के लिए औसत मूल्य",
+                "no_data_found": "डेटा नहीं मिला"
             },
             "crops_page": {
                 "title": "फसल विश्वकोश",
@@ -1279,7 +1348,8 @@ const resources = {
                 "try_again": "மீண்டும் முயற்சி செய்",
                 "no_location": "தயவுசெய்து உங்கள் சுயவிவர அமைப்புகளில் உங்கள் கிராமத்தின் பெயரை உள்ளிடவும்.",
                 "search_placeholder": "கிராமம் அல்லது நகரத்தைத் தேடுங்கள்...",
-                "search_button": "தேடு"
+                "search_button": "தேடு",
+                "no_data_found": "தரவு கிடைக்கவில்லை"
             },
             "dashboard": {
                 "title": "பண்ணை மேலாண்மை",
@@ -1381,6 +1451,27 @@ const resources = {
                 "services": "சேவைகள்",
                 "privacy_policy": "தனியுரிமை கொள்கை",
                 "contact_link": "தொடர்பு கொள்ளுங்கள்"
+            },
+            "crop_status": {
+                "no_crops_title": "பயிர்கள் தேர்ந்தெடுக்கப்படவில்லை",
+                "no_crops_message": "நீங்கள் இன்னும் எந்தப் பயிரையும் தேர்ந்தெடுக்கவில்லை. தயவுசெய்து உங்கள் பயிரைத் தேர்ந்தெடுக்கவும்.",
+                "boost_yield": "விளைச்சலை அதிகரிக்க",
+                "prevention": "பாதுகாப்பு",
+                "monitoring": "உங்கள் பயிரை கண்காணித்து வருகிறோம்...",
+                "heavy_rain_threat": "கனமழை எதிர்பார்க்கப்படுகிறது",
+                "heavy_rain_suggestion": "உரம் போடுவதைத் தள்ளிப்போடுங்கள்.",
+                "high_temp_threat": "அதிக வெப்பநிலை எச்சரிக்கை",
+                "high_temp_suggestion": "மாலை நேரத்தில் தண்ணீர் பாய்ச்சவும்.",
+                "paddy_suggestion": "2-5 செ.மீ தேங்கிய நீரைப் பராமரிக்கவும்.",
+                "cotton_suggestion": "வெள்ளை ஈ தாக்குதலைக் கண்காணிக்கவும்.",
+                "prod_tip_default": "மண் வளத்தைப் பேண பயிர் சுழற்சி முறையைப் பின்பற்றவும்.",
+                "prod_tip_paddy": "விளைச்சலை 15-20% அதிகரிக்க அசோலாவை உயிர் உரமாகப் பயன்படுத்தவும்.",
+                "prod_tip_cotton": "அதிக விளைச்சலுக்கு அடர் நடவு முறையைச் செயல்படுத்தவும்.",
+                "prod_tip_maize": "நைட்ரஜன் அளவை மேம்படுத்த சோயாபீனுடன் ஊடு பயிர் செய்யவும்.",
+                "history_advice_default": "உள்ளூர் நிலவரப்படி தொடர்ந்து பூச்சி தாக்குதலைக் கண்காணிக்கவும்.",
+                "history_advice_fungal": "முன்பு பூஞ்சை பாதிப்பு கண்டறியப்பட்டது. அதிக நைட்ரஜனைத் தவிர்த்து வயலை உலர வைக்கவும்.",
+                "history_advice_pest": "முன்பு பூச்சி தாக்குதல் இருந்தது. இந்த பருவத்தின் தொடக்கத்திலேயே இனக்கவர்ச்சி பொறிகளை வைக்கவும்.",
+                "history_advice_recurrence": "மீண்டும் வருவதைத் தடுக்கிறோம்: {{disease}}"
             },
             "assistant": {
                 "title": "AI ஆலோசனை",
